@@ -57,43 +57,61 @@ public class LoginWindow extends JFrame {
 
         // Title - center aligned
         JLabel title = new JLabel("Snow");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setFont(new Font("Georgia", Font.BOLD, 40));
         title.setForeground(Color.WHITE);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel subtitle = new JLabel("Library Catalogue System");
+        subtitle.setFont(new Font("Garamond", Font.PLAIN, 11));
         subtitle.setForeground(new Color(220,220,220));
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
 
 
-        // Add components with center alignment
+        // Add title components
         overlay.add(title);
         overlay.add(Box.createVerticalStrut(5));
         overlay.add(subtitle);
         overlay.add(Box.createVerticalStrut(30));
-
         overlay.add(Box.createVerticalStrut(25));
 
-        // Email label - center aligned
+        // Create a panel for the form inputs with left alignment
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setOpaque(false); // Make transparent
+        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        formPanel.setMaximumSize(new Dimension(300, 200));
+
+        // Email label - left aligned within form panel
         JLabel emailLabel = new JLabel("Email");
+        emailLabel.setFont(new Font("Garamond", Font.PLAIN, 13));
         emailLabel.setForeground(Color.WHITE);
-        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         usernameField = new RoundedTextField(20);
         usernameField.setMaximumSize(new Dimension(300,35));
-        usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        usernameField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Password label - center aligned
+        // Password label - left aligned within form panel
         JLabel passLabel = new JLabel("Password");
+        passLabel.setFont(new Font("Garamond", Font.PLAIN, 13));
         passLabel.setForeground(Color.WHITE);
-        passLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        passLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         passwordField = new RoundedPasswordField(20);
         passwordField.setMaximumSize(new Dimension(300,35));
-        passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        passwordField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Login Button - center aligned
+        // Add components to form panel
+        formPanel.add(emailLabel);
+        formPanel.add(Box.createVerticalStrut(5));
+        formPanel.add(usernameField);
+        formPanel.add(Box.createVerticalStrut(15));
+        formPanel.add(passLabel);
+        formPanel.add(Box.createVerticalStrut(5));
+        formPanel.add(passwordField);
+
+        // Login Button - center aligned (separate from form panel)
         loginButton = new RoundedButton("Sign In");
         loginButton.setMaximumSize(new Dimension(300,40));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -107,23 +125,16 @@ public class LoginWindow extends JFrame {
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Add all components with spacing
-        overlay.add(emailLabel);
-        overlay.add(Box.createVerticalStrut(5));
-        overlay.add(usernameField);
-        overlay.add(Box.createVerticalStrut(15));
-        overlay.add(passLabel);
-        overlay.add(Box.createVerticalStrut(5));
-        overlay.add(passwordField);
-        overlay.add(Box.createVerticalStrut(25));
+        // Add form panel, button, and status to main overlay
+        overlay.add(formPanel);
+        overlay.add(Box.createVerticalStrut(20));
         overlay.add(loginButton);
         overlay.add(Box.createVerticalStrut(15));
         overlay.add(statusLabel);
 
-        // Add rigid areas at top and bottom for vertical centering
-        // This pushes content to the vertical center
-        overlay.add(Box.createVerticalGlue(), 0); // Add at beginning
-        overlay.add(Box.createVerticalGlue());     // Add at end
+        // Add glue for vertical centering
+        overlay.add(Box.createVerticalGlue(), 0);
+        overlay.add(Box.createVerticalGlue());
 
         loginPanel.add(overlay);
 
