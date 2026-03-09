@@ -1,7 +1,18 @@
+//javac -cp ".;../lib/gson-2.10.1.jar" *.java
+//java -cp ".;../lib/gson-2.10.1.jar" LoginWindow
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URL;
+import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+
 
 public class LoginWindow extends JFrame {
     private JTextField usernameField;
@@ -186,47 +197,221 @@ public class LoginWindow extends JFrame {
     }
 
     private void createUserDashboard() {
-        userDashboard = new JPanel(new BorderLayout(10, 10));
-        userDashboard.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Header
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        JLabel titleLabel = new JLabel("User Dashboard", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(0, 153, 76));
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        userDashboard = new JPanel(new BorderLayout());
 
-        // Welcome message with user info
-        JPanel welcomePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JLabel welcomeLabel = new JLabel("Welcome to the Library System");
-        welcomeLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        welcomePanel.add(welcomeLabel);
+        // ---------- HEADER ----------
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(140,100,85));
+        header.setBorder(BorderFactory.createEmptyBorder(15,20,15,20));
 
-        // Create tabbed pane for user functions
-        JTabbedPane tabbedPane = new JTabbedPane();
+        JLabel title = new JLabel("Library Catalogue");
+        title.setFont(new Font("Georgia", Font.BOLD, 26));
+        title.setForeground(Color.WHITE);
 
-        // Browse Books Tab
-        JPanel browsePanel = createBrowseBooksPanel();
-        tabbedPane.addTab("Browse Books", browsePanel);
 
-        // My Account Tab
-        JPanel accountPanel = createMyAccountPanel();
-        tabbedPane.addTab("My Account", accountPanel);
+        JPanel titlePanel = new JPanel();
+        titlePanel.setOpaque(false);
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.add(title);
 
-        // Search Tab
-        JPanel searchPanel = createSearchPanel();
-        tabbedPane.addTab("Search", searchPanel);
+        JButton logoutBtn = new RoundedButton("Logout");
+        logoutBtn.addActionListener(e -> performLogout());
 
-        // Logout button at bottom
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton dashboardLogoutBtn = new JButton("Logout");
-        dashboardLogoutBtn.addActionListener(e -> performLogout());
-        bottomPanel.add(dashboardLogoutBtn);
+        header.add(titlePanel, BorderLayout.WEST);
+        header.add(logoutBtn, BorderLayout.EAST);
 
-        userDashboard.add(headerPanel, BorderLayout.NORTH);
-        userDashboard.add(welcomePanel, BorderLayout.CENTER);
-        userDashboard.add(tabbedPane, BorderLayout.SOUTH);
+        userDashboard.add(header, BorderLayout.NORTH);
+
+
+        // ---------- MAIN CONTENT ----------
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBackground(new Color(156, 165, 118));
+        content.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+
+
+        // ---------- SEARCH BAR ----------
+        JTextField search = new RoundedTextField(20);
+        search.setMaximumSize(new Dimension(Integer.MAX_VALUE,35));
+        search.setAlignmentX(Component.LEFT_ALIGNMENT);  // Add this
+        content.add(search);
+
+        content.add(Box.createVerticalStrut(20));
+
+
+        // ---------- CATEGORY BUTTONS ----------
+        RoundedPanel categories = new RoundedPanel(30);
+        categories.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        categories.setBackground(new Color(156, 165, 118)); // cream
+        categories.setForeground(new Color(140,100,85));
+        categories.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        categories.setAlignmentX(Component.LEFT_ALIGNMENT);  // Add this
+        categories.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        categories.setPreferredSize(new Dimension(800, 70));
+        String[] cats = {
+                "All Books","Fiction","Mystery","Science Fiction",
+                "Romance","Fantasy","Biography","Historical Fiction","Non-Fiction"
+        };
+
+        for(String c : cats){
+            JButton btn = new JButton(c);
+            categories.add(btn);
+            btn.setFocusPainted(false);
+            btn.setFont(new Font("Georgia", Font.PLAIN, 13));
+            btn.setForeground(new Color(140,100,85));
+            btn.setBackground(new Color(156, 165, 118));
+
+
+        }
+        
+        content.add(categories);
+
+        content.add(Box.createVerticalStrut(20));
+
+
+        // ---------- CURRENTLY BORROWED ----------
+        JLabel borrowedLabel = new JLabel("Currently Borrowed");
+        borrowedLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        borrowedLabel.setFont(new Font("Georgia", Font.BOLD, 20));
+        borrowedLabel.setForeground(Color.WHITE);
+        borrowedLabel.setMaximumSize(new Dimension(Integer.MAX_VALUE, borrowedLabel.getPreferredSize().height)); // Add this
+        content.add(borrowedLabel);
+
+        JPanel booksGrid1 = createBooksGrid();
+        booksGrid1.setAlignmentX(Component.LEFT_ALIGNMENT);  // Add this
+        booksGrid1.setMaximumSize(new Dimension(Integer.MAX_VALUE, booksGrid1.getPreferredSize().height)); // Add this
+        content.add(booksGrid1);
+
+        content.add(Box.createVerticalStrut(20));
+
+
+        // ---------- ALL BOOKS ----------
+        JLabel allBooks = new JLabel("All Books");
+        allBooks.setAlignmentX(Component.LEFT_ALIGNMENT);
+        allBooks.setFont(new Font("Georgia", Font.BOLD, 20));
+        allBooks.setForeground(Color.WHITE);
+        allBooks.setMaximumSize(new Dimension(Integer.MAX_VALUE, allBooks.getPreferredSize().height)); // Add this
+        content.add(allBooks);
+
+        JPanel booksGrid2 = createBooksGrid();
+        booksGrid2.setAlignmentX(Component.LEFT_ALIGNMENT);  // Add this
+        booksGrid2.setMaximumSize(new Dimension(Integer.MAX_VALUE, booksGrid2.getPreferredSize().height)); // Add this
+        content.add(booksGrid2);
+
+
+        JScrollPane scroll = new JScrollPane(content);
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setUnitIncrement(16); // Optional: smoother scrolling
+
+        userDashboard.add(scroll, BorderLayout.CENTER);
     }
+    private JPanel createBooksGrid(){
+
+        JPanel grid = new JPanel(new GridLayout(1,5,20,20));
+        grid.setBorder(BorderFactory.createEmptyBorder(10,0,20,0));
+        grid.setBackground(new Color(156, 165, 118));
+
+        grid.add(createBookCard(
+                "The Silent Patient",
+                "Alex Michaelides",
+                "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg"));
+
+        grid.add(createBookCard(
+                "Project Hail Mary",
+                "Andy Weir",
+                "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg"));
+
+
+        grid.add(createBookCard(
+                "Educated",
+                "Tara Westover",
+                "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg"));
+
+        grid.add(createBookCard(
+                "The Song of Achilles",
+                "Madeline Miller",
+                "https://covers.openlibrary.org/b/isbn/9780062060624-L.jpg"));
+
+        grid.add(createBookCard(
+                "Educated",
+                "Tara Westover",
+                "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg"));
+
+
+        return grid;
+    }
+    private JPanel createBookCard(String title, String author, String coverUrl) {
+
+        JPanel card = new RoundedPanel(30);
+        card.setLayout(new BorderLayout());
+        card.setPreferredSize(new Dimension(180, 300));
+        card.setBackground(new Color(140, 108, 95));
+
+        // Center panel for cover image
+        JPanel coverPanel = new RoundedPanel(20);
+        coverPanel.setBackground(new Color(140, 108, 95));
+
+        try {
+            BufferedImage img = ImageIO.read(new URL(coverUrl));
+            Image scaled = img.getScaledInstance(160, 200, Image.SCALE_SMOOTH);
+
+            JLabel cover = new JLabel(new ImageIcon(scaled));
+            coverPanel.add(cover);
+
+        } catch (Exception e) {
+            JLabel placeholder = new JLabel("No Cover");
+            placeholder.setFont(new Font("Garamond", Font.ITALIC, 14));
+            placeholder.setForeground(Color.WHITE);
+            coverPanel.add(placeholder);
+        }
+
+        card.add(coverPanel, BorderLayout.CENTER); // Changed from NORTH to CENTER
+
+        // Info panel with centered text
+        JPanel info = new RoundedPanel(20);
+        info.setLayout(new GridBagLayout()); // Changed to GridBagLayout for better centering
+        info.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        info.setBackground(new Color(140, 108, 95));
+
+        // Panel to hold text with vertical BoxLayout
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setBackground(new Color(140, 108, 95));
+        textPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel t = new JLabel(title);
+        t.setFont(new Font("Garamond", Font.BOLD, 16)); // Slightly smaller to fit
+        t.setForeground(Color.WHITE);
+        t.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Handle long titles
+        if (title.length() > 20) {
+            t.setText("<html><div style='text-align: center; width: 150px;'>" + title + "</div></html>");
+        }
+
+        JLabel a = new JLabel(author);
+        a.setFont(new Font("Garamond", Font.BOLD, 14));
+        a.setForeground(Color.WHITE);
+        a.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Handle long author names
+        if (author.length() > 25) {
+            a.setText("<html><div style='text-align: center; width: 150px;'>" + author + "</div></html>");
+        }
+
+        textPanel.add(t);
+        textPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        textPanel.add(a);
+
+        // Center the textPanel within info panel
+        info.add(textPanel, new GridBagConstraints());
+
+        card.add(info, BorderLayout.SOUTH);
+
+        return card;
+    }
+
 
     // Admin Panel Components
     private JPanel createBooksManagementPanel() {
@@ -265,41 +450,6 @@ public class LoginWindow extends JFrame {
     }
 
 
-    // User Panel Components
-    private JPanel createBrowseBooksPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // Category filter
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        filterPanel.add(new JLabel("Category:"));
-        String[] categories = {"All", "Fiction", "Non-Fiction", "Science", "History", "Biography"};
-        JComboBox<String> categoryBox = new JComboBox<>(categories);
-        filterPanel.add(categoryBox);
-        filterPanel.add(new JButton("Apply Filter"));
-
-        // Books display
-        String[] columns = {"Title", "Author", "Category", "Status", "Due Date"};
-        Object[][] data = {
-                {"The Great Gatsby", "F. Scott Fitzgerald", "Fiction", "Available", "-"},
-                {"To Kill a Mockingbird", "Harper Lee", "Fiction", "Checked Out", "2024-02-01"},
-                {"A Brief History of Time", "Stephen Hawking", "Science", "Available", "-"}
-        };
-
-        JTable booksTable = new JTable(data, columns);
-        JScrollPane scrollPane = new JScrollPane(booksTable);
-
-        // Action buttons
-        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        actionPanel.add(new JButton("View Details"));
-        actionPanel.add(new JButton("Add to Wishlist"));
-
-        panel.add(filterPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(actionPanel, BorderLayout.SOUTH);
-
-        return panel;
-    }
 
     private JPanel createMyAccountPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
@@ -365,36 +515,6 @@ public class LoginWindow extends JFrame {
         return panel;
     }
 
-    private JPanel createReportCard(String title, String stat1, String stat2, Color color) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createLineBorder(color, 2));
-        card.setBackground(new Color(color.getRed(), color.getGreen(), color.getBlue(), 50));
-
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel stat1Label = new JLabel(stat1);
-        stat1Label.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel stat2Label = new JLabel(stat2);
-        stat2Label.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JButton viewBtn = new JButton("View Details");
-        viewBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        card.add(Box.createVerticalStrut(10));
-        card.add(titleLabel);
-        card.add(Box.createVerticalStrut(10));
-        card.add(stat1Label);
-        card.add(stat2Label);
-        card.add(Box.createVerticalStrut(10));
-        card.add(viewBtn);
-        card.add(Box.createVerticalStrut(10));
-
-        return card;
-    }
 
     private void setupMenuBar() {
         JMenuBar menuBar = new JMenuBar();
