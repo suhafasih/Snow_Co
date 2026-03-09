@@ -21,70 +21,112 @@ public class LoginWindow extends JFrame {
     private CardLayout cardLayout;
 
     public LoginWindow() {
-        // Set up the main window
-        setTitle("Library Catalogue");
+        setTitle("Library Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 200);
-        setLocationRelativeTo(null); // Center the window
+        setSize(900,600); // bigger for background
+        setLocationRelativeTo(null);
 
-        // Create CardLayout for switching between panels
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        // Create all panels
         createLoginPanel();
         createAdminDashboard();
         createUserDashboard();
 
-        // Add panels to card layout
         mainPanel.add(loginPanel, "LOGIN");
         mainPanel.add(adminDashboard, "ADMIN_DASHBOARD");
         mainPanel.add(userDashboard, "USER_DASHBOARD");
 
-        // Add main panel to frame
-        add(mainPanel);
+        add(mainPanel); // only add this
 
-        // Set up menu bar
         setupMenuBar();
     }
 
     private void createLoginPanel() {
-        loginPanel = new JPanel(new BorderLayout(10, 10));
-        loginPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Create input panel
-        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        // Main panel with background image
+        loginPanel = new BackgroundPanel("libraryimage.jfif");
+        loginPanel.setLayout(new GridBagLayout());
 
-        // Add components to input panel
-        inputPanel.add(new JLabel("Username:"));
-        usernameField = new JTextField();
-        inputPanel.add(usernameField);
+        // Dark overlay panel (simulates blur)
+        JPanel overlay = new JPanel();
+        overlay.setBackground(new Color(50, 30, 25, 180));
+        overlay.setPreferredSize(new Dimension(420, 500));
+        overlay.setLayout(new BoxLayout(overlay, BoxLayout.Y_AXIS));
+        overlay.setBorder(BorderFactory.createEmptyBorder(40,40,40,40));
 
-        inputPanel.add(new JLabel("Password:"));
-        passwordField = new JPasswordField();
-        inputPanel.add(passwordField);
+        // Title - center aligned
+        JLabel title = new JLabel("Snow");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        title.setForeground(Color.WHITE);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Create button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JLabel subtitle = new JLabel("Library Catalogue System");
+        subtitle.setForeground(new Color(220,220,220));
+        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        loginButton = new JButton("Login");
-        logoutButton = new JButton("Logout");
-        logoutButton.setEnabled(false); // Initially disabled
 
-        buttonPanel.add(loginButton);
-        buttonPanel.add(logoutButton);
 
-        // Create status panel
-        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Add components with center alignment
+        overlay.add(title);
+        overlay.add(Box.createVerticalStrut(5));
+        overlay.add(subtitle);
+        overlay.add(Box.createVerticalStrut(30));
+
+        overlay.add(Box.createVerticalStrut(25));
+
+        // Email label - center aligned
+        JLabel emailLabel = new JLabel("Email");
+        emailLabel.setForeground(Color.WHITE);
+        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        usernameField = new RoundedTextField(20);
+        usernameField.setMaximumSize(new Dimension(300,35));
+        usernameField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Password label - center aligned
+        JLabel passLabel = new JLabel("Password");
+        passLabel.setForeground(Color.WHITE);
+        passLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        passwordField = new RoundedPasswordField(20);
+        passwordField.setMaximumSize(new Dimension(300,35));
+        passwordField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Login Button - center aligned
+        loginButton = new RoundedButton("Sign In");
+        loginButton.setMaximumSize(new Dimension(300,40));
+        loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        loginButton.setBackground(new Color(140,100,85));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFocusPainted(false);
+        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        // Status label - center aligned
         statusLabel = new JLabel("Status: Not logged in");
-        statusPanel.add(statusLabel);
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Add all panels to main panel
-        loginPanel.add(inputPanel, BorderLayout.CENTER);
-        loginPanel.add(buttonPanel, BorderLayout.SOUTH);
-        loginPanel.add(statusPanel, BorderLayout.NORTH);
+        // Add all components with spacing
+        overlay.add(emailLabel);
+        overlay.add(Box.createVerticalStrut(5));
+        overlay.add(usernameField);
+        overlay.add(Box.createVerticalStrut(15));
+        overlay.add(passLabel);
+        overlay.add(Box.createVerticalStrut(5));
+        overlay.add(passwordField);
+        overlay.add(Box.createVerticalStrut(25));
+        overlay.add(loginButton);
+        overlay.add(Box.createVerticalStrut(15));
+        overlay.add(statusLabel);
 
-        // Add action listeners
+        // Add rigid areas at top and bottom for vertical centering
+        // This pushes content to the vertical center
+        overlay.add(Box.createVerticalGlue(), 0); // Add at beginning
+        overlay.add(Box.createVerticalGlue());     // Add at end
+
+        loginPanel.add(overlay);
+
         setupActionListeners();
     }
 
@@ -116,6 +158,20 @@ public class LoginWindow extends JFrame {
         adminDashboard.add(headerPanel, BorderLayout.NORTH);
         adminDashboard.add(tabbedPane, BorderLayout.CENTER);
         adminDashboard.add(bottomPanel, BorderLayout.SOUTH);
+    }
+
+    class BackgroundPanel extends JPanel {
+
+        private Image backgroundImage;
+
+        public BackgroundPanel(String path) {
+            backgroundImage = new ImageIcon(path).getImage();
+        }
+
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
     }
 
     private void createUserDashboard() {
@@ -345,7 +401,7 @@ public class LoginWindow extends JFrame {
 
     private void setupActionListeners() {
         loginButton.addActionListener(e -> performLogin());
-        logoutButton.addActionListener(e -> performLogout());
+//        logoutButton.addActionListener(e -> performLogout());
 
         usernameField.addActionListener(e -> performLogin());
         passwordField.addActionListener(e -> performLogin());
