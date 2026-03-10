@@ -660,7 +660,7 @@ public class LoginWindow extends JFrame {
 
         // Update UI for logged out state
         loginButton.setEnabled(true);
-        logoutButton.setEnabled(false);
+//        logoutButton.setEnabled(false);
         usernameField.setEnabled(true);
         passwordField.setEnabled(true);
 
