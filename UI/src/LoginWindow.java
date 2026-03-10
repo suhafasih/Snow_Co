@@ -419,28 +419,68 @@ public class LoginWindow extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Toolbar
-        JToolBar toolBar = new JToolBar();
-        toolBar.add(new JButton("Add Book"));
-        toolBar.add(new JButton("Edit Book"));
-        toolBar.add(new JButton("Delete Book"));
+        JToolBar toolBar = new JToolBar(); 
+        JButton addButton = new JButton("Add Book");
+        JButton editButton = new JButton("Edit Book");
+        JButton deleteButton = new JButton("Delete Book");
+
+        toolBar.add(addButton);
+        toolBar.add(editButton);
+        toolBar.add(deleteButton);
         toolBar.addSeparator();
 
         // Table for books
-        String[] columns = {"ID", "Title", "Author", "ISBN", "Status", "Location"};
+        String[] columns = {"ID", "Title", "Author", "ISBN", "Status", "Location"}; 
         Object[][] data = {
                 {1, "The Great Gatsby", "F. Scott Fitzgerald", "978-0-7432-7356-5", "Available", "A1"},
                 {2, "To Kill a Mockingbird", "Harper Lee", "978-0-06-112008-4", "Checked Out", "B2"},
                 {3, "1984", "George Orwell", "978-0-452-28423-4", "Available", "C3"}
         };
 
-        JTable booksTable = new JTable(data, columns);
+        //Model
+        javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(data, columns);
+        JTable booksTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(booksTable);
 
         // Search panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchPanel.add(new JLabel("Search:"));
         searchPanel.add(new JTextField(20));
-        searchPanel.add(new JButton("Search"));
+        searchPanel.add(new JButton("Search")); 
+
+        //ADD create a new entry
+        addButton.addActionListener(e ->{
+            String title = JOptionPane.showInputDialog(this, "Enter Book Title: ");
+            if (title != null && !title.trim().isEmpty()){
+                tableModel.addRow(new Object[]{tableModel.getRowCount() + 1, title, "TBD", "N/A", "Available", "TBD"});
+            }
+        });
+ 
+        //Edit update a title of selected book 
+        editButton.addActionListener(e -> {
+            int selectedRows = booksTable.getSelectedRow(); 
+            if (selectedRows != -1){
+                String currentTitle = (String) tableModel.getValueAt(selectedRows, 1);
+                String updatedTitle = JOptionPane.showInputDialog(this, "Updated Title:", currentTitle);
+                if (updatedTitle != null && !updatedTitle.trim().isEmpty()){
+                    tableModel.setValueAt(updatedTitle, selectedRows, 1);
+                }
+                else {
+                    JOptionPane.showMessageDialog(this, "Select a book first!");
+                }
+            }
+        }); 
+
+        //Delete removes the row selected from the display
+        deleteButton.addActionListener(e -> {
+            int selectedRow = booksTable.getSelectedRow();
+            if (selectedRow != -1){
+                tableModel.removeRow(selectedRow);
+            }
+            else {
+                JOptionPane.showMessageDialog(this, "Select a book to delete first!");
+            }
+        });
 
         panel.add(toolBar, BorderLayout.NORTH);
         panel.add(searchPanel, BorderLayout.CENTER);
