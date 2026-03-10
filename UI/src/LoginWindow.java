@@ -237,6 +237,33 @@ public class LoginWindow extends JFrame {
         search.setAlignmentX(Component.LEFT_ALIGNMENT);  // Add this
         content.add(search);
 
+        //listen for the enter key
+        search.addActionListener(e -> {
+            String query = search.getText();
+
+            if (!query.trim().isEmpty()) {
+                System.out.println("Searching OpenLibrary for: " + query + "...");
+
+                //fetch the data
+                JsonArray results = API.searchBooks(query);
+
+                System.out.println("Success! Found " + results.size() + " books.");
+
+                //loop through the top 5 results and print their titles to the console
+                for (int i = 0; i < Math.min(results.size(), 5); i++) {
+                    JsonObject book = results.get(i).getAsJsonObject();
+                    if (book.has("title")) {
+                        System.out.println("- " + book.get("title").getAsString());
+                    }
+                }
+
+                JOptionPane.showMessageDialog(this,
+                        "Found " + results.size() + " results!",
+                        "Search Successful",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
         content.add(Box.createVerticalStrut(20));
 
 
