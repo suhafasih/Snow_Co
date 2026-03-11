@@ -52,7 +52,7 @@ public class LoginWindow extends JFrame {
         loginPanel = new JPanel(new BorderLayout(10, 10));
         loginPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Create input panel
+        // Creating input panel
         JPanel inputPanel = new JPanel(new GridLayout(3, 2, 5, 5));
 
         // Add components to input panel
