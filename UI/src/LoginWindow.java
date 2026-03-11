@@ -102,7 +102,7 @@ public class LoginWindow extends JFrame {
         // Create tabbed pane for admin functions
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Books Management Tab
+        // Books Management Tabs
         JPanel booksPanel = createBooksManagementPanel();
         tabbedPane.addTab("Books Management", booksPanel);
 
