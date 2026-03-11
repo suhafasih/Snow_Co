@@ -107,7 +107,7 @@ public class LoginWindow extends JFrame {
         tabbedPane.addTab("Books Management", booksPanel);
 
 
-        // Logout button at bottom
+        //Logout button at bottom
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton dashboardLogoutBtn = new JButton("Logout");
         dashboardLogoutBtn.addActionListener(e -> performLogout());
