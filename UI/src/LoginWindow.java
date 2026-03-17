@@ -321,34 +321,6 @@ public class LoginWindow extends JFrame {
         searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
         searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        //listen for the enter key
-        //search.addActionListener(e -> {
-            //String query = search.getText();
-
-            //if (!query.trim().isEmpty()) {
-                //System.out.println("Searching OpenLibrary for: " + query + "...");
-
-                //fetch the data
-                //JsonArray results = API.searchBooks(query);
-
-                //System.out.println("Success! Found " + results.size() + " books.");
-
-                //loop through the top 5 results and print their titles to the console
-                //for (int i = 0; i < Math.min(results.size(), 5); i++) {
-                    //JsonObject book = results.get(i).getAsJsonObject();
-                    //if (book.has("title")) {
-                        //System.out.println("- " + book.get("title").getAsString());
-                    //}
-                //}
-
-                //JOptionPane.showMessageDialog(this,
-                //        "Found " + results.size() + " results!",
-              //          "Search Successful",
-            //            JOptionPane.INFORMATION_MESSAGE);
-          //  }
-        //});
-
-        //content.add(Box.createVerticalStrut(20));
 
         JTextField searchField = new RoundedTextField(20);
         searchField.setPreferredSize(new Dimension(200, 45));
@@ -494,6 +466,66 @@ public class LoginWindow extends JFrame {
         content.add(Box.createVerticalStrut(20));
         content.add(loadMoreBtn);
         content.add(Box.createVerticalStrut(20));
+
+        //search bar logic
+        ActionListener performSearch = e -> {
+            String query = searchField.getText();
+
+            if (!query.trim().isEmpty()) {
+                searchButton.setText("Loading...");
+                searchButton.setEnabled(false);
+                allBooksGrid.removeAll();
+
+                // Use swignWorker to fetch data in the background
+                SwingWorker<JsonArray, Void> worker = new SwingWorker<JsonArray, Void>() {
+                    @Override
+                    protected JsonArray doInBackground() throws Exception {
+                        //preventing lag
+                        return API.searchBooks(query);
+                    }
+                    @Override
+                    protected void done() {
+                        try {
+                            JsonArray results = get(); // Get the background results
+
+                            for (int i = 0; i < Math.min(results.size(), 8); i++) {
+                                JsonObject book = results.get(i).getAsJsonObject();
+
+                                String bookTitle = book.has("title") ? book.get("title").getAsString() : "Unknown Title";
+                                String bookAuthor = "Unknown Author";
+                                if (book.has("author_name")) {
+                                    bookAuthor = book.get("author_name").getAsJsonArray().get(0).getAsString();
+                                }
+
+                                String coverUrl = "";
+                                if (book.has("cover_i")) {
+                                    String coverId = book.get("cover_i").getAsString();
+                                    coverUrl = "https://covers.openlibrary.org/b/id/" + coverId + "-L.jpg";
+                                }
+
+                                allBooksGrid.add(createEarthyBookCard(bookTitle, bookAuthor, coverUrl, "Available", "",
+                                        sage, warmBrown, darkBrown, sand, moss, terracotta));
+                            }
+
+                            allBooksGrid.revalidate();
+                            allBooksGrid.repaint();
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        } finally {
+                            // Reset the button once the search is done
+                            searchButton.setText("Search");
+                            searchButton.setEnabled(true);
+                        }
+                    }
+                };
+                worker.execute();
+            }
+        };
+
+        searchField.addActionListener(performSearch);
+        searchButton.addActionListener(performSearch);
+        // --------------------------------------
 
         JScrollPane scrollPane = new JScrollPane(content);
         scrollPane.setBorder(null);
