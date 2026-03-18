@@ -908,6 +908,41 @@ public class LoginWindow extends JFrame {
         editBtn.setPreferredSize(new Dimension(120,35));
         deleteBtn.setPreferredSize(new Dimension(120,35));
 
+        // //API search for admin dashboard
+        // searchBtn.addActionListener(e ->{
+        //     if (!query.isEmpty()){
+        //         searchBtn.setText("Fetch....");
+        //         searchBtn.setEnabled(false);
+        //         model.setRowCount(0); //will clear the current data table
+                
+        //         SwingWorker<JsonArray, Void> worker = new SwingWorker<>(){
+        //             @Override
+        //             protected JsonArray doInBackground() {
+        //                 return API.searchBooks(query);
+        //             }
+
+        //             @Override
+        //             protected void done(){
+        //                 try {
+        //                     JsonArray results = get();
+        //                     for (int i = 0; i < Math.min(results.size(), 15); i++){
+        //                         JsonObject book = results.get(i).getAsJsonObject();
+        //                         String t = book.has("title") ? book.get("title").getAsString() : "Unknown";
+        //                         String a = book.has("author_name") ? book.get("author_name").getAsJsonArray().get(0).getAsString() : "Unknown";
+        //                         model.addRow(new Object[]{t , a});
+        //                     }
+        //                 } catch (Exception ex){
+        //                     ex.printStackTrace();
+        //                 }
+        //             }
+        //         };
+        //         worker.execute();
+        //     }
+        // }); 
+
+
+
+
         toolBar.add(addBtn);
         toolBar.add(editBtn);
         toolBar.add(deleteBtn);
