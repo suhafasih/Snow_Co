@@ -536,7 +536,7 @@ public class LoginWindow extends JFrame {
     }
 
     private JPanel createEarthyBooksGrid(Color sage, Color warmBrown, Color darkBrown, Color sand, Color moss, Color terracotta, boolean isBorrowed) {
-        JPanel grid = new JPanel(new GridLayout(1, 4, 20, 0));
+        JPanel grid = new JPanel(new GridLayout(0, 4, 20, 20));
         grid.setBackground(new Color(245, 240, 230)); // cream
         grid.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
