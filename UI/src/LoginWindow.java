@@ -57,11 +57,11 @@ public class LoginWindow extends JFrame {
     private void createLoginPanel() {
 
         // Main panel with background image
-        loginPanel = new BackgroundPanel("libraryimage.jfif");
+        loginPanel = new BackgroundPanel("libcat2.png");
         loginPanel.setLayout(new GridBagLayout());
 
         // Dark overlay panel
-        JPanel overlay = new JPanel();
+        JPanel overlay = new RoundedPanel(150);
         overlay.setBackground(new Color(50, 30, 25, 180));
         overlay.setPreferredSize(new Dimension(420, 500));
         overlay.setLayout(new BoxLayout(overlay, BoxLayout.Y_AXIS));
@@ -74,7 +74,7 @@ public class LoginWindow extends JFrame {
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel subtitle = new JLabel("Library Catalogue System");
-        subtitle.setFont(new Font("Garamond", Font.PLAIN, 11));
+        subtitle.setFont(new Font("Garamond", Font.BOLD, 26));
         subtitle.setForeground(new Color(220,220,220));
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -95,7 +95,7 @@ public class LoginWindow extends JFrame {
 
         // Email label
         JLabel emailLabel = new JLabel("Email");
-        emailLabel.setFont(new Font("Garamond", Font.PLAIN, 13));
+        emailLabel.setFont(new Font("Garamond", Font.PLAIN, 20));
         emailLabel.setForeground(Color.WHITE);
         emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -105,7 +105,7 @@ public class LoginWindow extends JFrame {
 
         // Password label
         JLabel passLabel = new JLabel("Password");
-        passLabel.setFont(new Font("Garamond", Font.PLAIN, 13));
+        passLabel.setFont(new Font("Garamond", Font.PLAIN, 20));
         passLabel.setForeground(Color.WHITE);
         passLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -128,12 +128,13 @@ public class LoginWindow extends JFrame {
         loginButton.setBackground(new Color(140,100,85));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFocusPainted(false);
-        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        loginButton.setFont(new Font("Garamond", Font.BOLD, 20));
 
         // Status label
         statusLabel = new JLabel("Status: Not logged in");
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
 
         overlay.add(formPanel);
         overlay.add(Box.createVerticalStrut(20));
@@ -1162,7 +1163,8 @@ public class LoginWindow extends JFrame {
         currentUser = "";
         currentUserRole = "";
         statusLabel.setText("Status: Not logged in");
-        statusLabel.setForeground(Color.BLACK);
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
 
         loginButton.setEnabled(true);
 
