@@ -482,7 +482,7 @@ public class LoginWindow extends JFrame {
                     @Override
                     protected JsonArray doInBackground() throws Exception {
                         //preventing lag
-                        return API.searchBooks(query);
+                        return (com.google.gson.JsonArray) API.searchBooks(query);
                     }
                     @Override
                     protected void done() {
@@ -681,6 +681,18 @@ public class LoginWindow extends JFrame {
                 public void mouseExited(MouseEvent e) {
                     borrowBtn.setBackground(sage);
                 }
+            });
+
+            borrowBtn.addActionListener(e -> {
+               JOptionPane.showMessageDialog(null, "Successfully borrowed: " + title + "Book loaned");
+
+               statusLabel.setText("Due in 7 days");
+               statusLabel.setForeground(new Color(200, 100, 50));
+               statusBadge.setBackground(new Color(255, 235, 215));
+
+               borrowBtn.setVisible(false);
+               card.revalidate();
+               card.repaint();
             });
 
             infoPanel.add(borrowBtn);
