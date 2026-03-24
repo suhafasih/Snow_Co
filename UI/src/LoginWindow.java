@@ -270,14 +270,38 @@ public class LoginWindow extends JFrame {
 
         public BackgroundPanel(String path) {
             try {
-                java.net.URL imageUrl = getClass().getResource("/" + path);
-                backgroundImage = new ImageIcon("UI/resources/libcat2.png").getImage();
+                java.net.URL imageUrl = getClass().getResource(path);
 
-                if (imageUrl == null) {
-                    System.out.println("Image not found: " + path);
-                } else {
+                if (imageUrl != null) {
+                    System.out.println("Loaded from classpath: " + imageUrl);
                     backgroundImage = new ImageIcon(imageUrl).getImage();
+                    return;
                 }
+
+                java.io.File file = new java.io.File(path);
+                if (file.exists()) {
+                    System.out.println("Loaded from file system: " + file.getAbsolutePath());
+                    backgroundImage = new ImageIcon(file.getAbsolutePath()).getImage();
+                    return;
+                }
+
+                String[] fallbackPaths = {
+                        "libcat2.png",
+                        "UI/resources/libcat2.png",
+                        "./UI/resources/libcat2.png",
+                        "../UI/resources/libcat2.png"
+                };
+
+                for (String fallback : fallbackPaths) {
+                    file = new java.io.File(fallback);
+                    if (file.exists()) {
+                        System.out.println("Loaded from fallback: " + file.getAbsolutePath());
+                        backgroundImage = new ImageIcon(file.getAbsolutePath()).getImage();
+                        return;
+                    }
+                }
+
+                System.out.println("Image not found anywhere: " + path);
 
             } catch (Exception e) {
                 e.printStackTrace();
