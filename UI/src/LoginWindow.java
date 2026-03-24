@@ -866,6 +866,10 @@ public class LoginWindow extends JFrame {
     //Admin panel components
     private JPanel createBooksManagementPanel() {
 
+        String[] columns = {"Title","Author","First Publish Year","Edition Count"};
+
+        DefaultTableModel model = new DefaultTableModel(columns,0);
+        this.booksTable = new JTable(model);
 //
 //        // Toolbar
 //        JToolBar toolBar = new JToolBar();
@@ -931,8 +935,8 @@ public class LoginWindow extends JFrame {
 //            }
 //        });
 //
-        DefaultTableModel model = new DefaultTableModel();
-        booksTable = new JTable(model);
+//        DefaultTableModel model = new DefaultTableModel();
+//        booksTable = new JTable(model);
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
 
@@ -1036,10 +1040,7 @@ public class LoginWindow extends JFrame {
 
         panel.add(toolBar, BorderLayout.NORTH);
 
-        String[] columns = {"Title","Author","First Publish Year","Edition Count"};
 
-        model = new DefaultTableModel(columns,0);
-        JTable booksTable = new JTable(model);
 
         booksTable.setRowHeight(32);
 
