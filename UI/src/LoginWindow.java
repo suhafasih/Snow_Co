@@ -867,7 +867,7 @@ public class LoginWindow extends JFrame {
     private JPanel createBooksManagementPanel() {
 
         String[] columns = {"Title","Author","First Publish Year","Edition Count"};
-
+        //
         DefaultTableModel model = new DefaultTableModel(columns,0);
         this.booksTable = new JTable(model);
 //
