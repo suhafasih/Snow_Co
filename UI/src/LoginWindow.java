@@ -60,6 +60,7 @@ public class LoginWindow extends JFrame {
         loginPanel = new BackgroundPanel("libcat2.png");
         loginPanel.setLayout(new GridBagLayout());
 
+
         // Dark overlay panel
         JPanel overlay = new RoundedPanel(150);
         overlay.setBackground(new Color(50, 30, 25, 180));
@@ -268,7 +269,19 @@ public class LoginWindow extends JFrame {
         private Image backgroundImage;
 
         public BackgroundPanel(String path) {
-            backgroundImage = new ImageIcon(path).getImage();
+            try {
+                java.net.URL imageUrl = getClass().getResource("/" + path);
+                backgroundImage = new ImageIcon("UI/resources/libcat2.png").getImage();
+
+                if (imageUrl == null) {
+                    System.out.println("Image not found: " + path);
+                } else {
+                    backgroundImage = new ImageIcon(imageUrl).getImage();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         protected void paintComponent(Graphics g) {
