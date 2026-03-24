@@ -24,6 +24,7 @@ public class LoginWindow extends JFrame {
     private boolean isLoggedIn = false;
     private String currentUser = "";
     private String currentUserRole = "";
+    private JTable booksTable;
 
     // Dashboard panels
     private JPanel mainPanel;
@@ -930,6 +931,8 @@ public class LoginWindow extends JFrame {
 //            }
 //        });
 //
+        DefaultTableModel model = new DefaultTableModel();
+        booksTable = new JTable(model);
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
 
@@ -988,21 +991,54 @@ public class LoginWindow extends JFrame {
         //         };
         //         worker.execute();
         //     }
-        // }); 
-
-
+        // });
 
 
         toolBar.add(addBtn);
         toolBar.add(editBtn);
         toolBar.add(deleteBtn);
 
+        //ADD BOOK LOGIC
+        addBtn.addActionListener(e ->{
+            JTextField titleField = new JTextField();
+            JTextField authorField = new JTextField();
+            JTextField yearField = new JTextField();
+            JTextField isbnField = new JTextField();
+
+            Object[]  formElements = {
+                    "Book Title: ", titleField,
+                    "Author: ", authorField,
+                    "Publish Year: ", yearField,
+                    "ISBN: ", isbnField
+            };
+
+            int result = JOptionPane.showConfirmDialog(null, formElements, "Add new book to local Library", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()){
+                DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
+
+
+                int newRowIndex = currentData.getRowCount();
+                currentData.setRowCount(newRowIndex + 1);
+
+                currentData.setValueAt(titleField.getText().trim(), newRowIndex, 0);
+                currentData.setValueAt(authorField.getText().trim(), newRowIndex, 1);
+                currentData.setValueAt(yearField.getText().trim(), newRowIndex, 2);
+                currentData.setValueAt(isbnField.getText().trim(), newRowIndex, 3);
+
+                booksTable.revalidate();
+                booksTable.repaint();
+            }
+
+
+        });
+
 
         panel.add(toolBar, BorderLayout.NORTH);
 
         String[] columns = {"Title","Author","First Publish Year","Edition Count"};
 
-        DefaultTableModel model = new DefaultTableModel(columns,0);
+        model = new DefaultTableModel(columns,0);
         JTable booksTable = new JTable(model);
 
         booksTable.setRowHeight(32);
