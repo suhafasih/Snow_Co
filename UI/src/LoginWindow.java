@@ -24,6 +24,7 @@ public class LoginWindow extends JFrame {
     private boolean isLoggedIn = false;
     private String currentUser = "";
     private String currentUserRole = "";
+    private JTable booksTable;
 
     // Dashboard panels
     private JPanel mainPanel;
@@ -59,6 +60,7 @@ public class LoginWindow extends JFrame {
         // Main panel with background image
         loginPanel = new BackgroundPanel("libcat2.png");
         loginPanel.setLayout(new GridBagLayout());
+
 
         // Dark overlay panel
         JPanel overlay = new RoundedPanel(150);
@@ -268,7 +270,43 @@ public class LoginWindow extends JFrame {
         private Image backgroundImage;
 
         public BackgroundPanel(String path) {
-            backgroundImage = new ImageIcon(path).getImage();
+            try {
+                java.net.URL imageUrl = getClass().getResource(path);
+
+                if (imageUrl != null) {
+                    System.out.println("Loaded from classpath: " + imageUrl);
+                    backgroundImage = new ImageIcon(imageUrl).getImage();
+                    return;
+                }
+
+                java.io.File file = new java.io.File(path);
+                if (file.exists()) {
+                    System.out.println("Loaded from file system: " + file.getAbsolutePath());
+                    backgroundImage = new ImageIcon(file.getAbsolutePath()).getImage();
+                    return;
+                }
+
+                String[] fallbackPaths = {
+                        "libcat2.png",
+                        "UI/resources/libcat2.png",
+                        "./UI/resources/libcat2.png",
+                        "../UI/resources/libcat2.png"
+                };
+
+                for (String fallback : fallbackPaths) {
+                    file = new java.io.File(fallback);
+                    if (file.exists()) {
+                        System.out.println("Loaded from fallback: " + file.getAbsolutePath());
+                        backgroundImage = new ImageIcon(file.getAbsolutePath()).getImage();
+                        return;
+                    }
+                }
+
+                System.out.println("Image not found anywhere: " + path);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         protected void paintComponent(Graphics g) {
@@ -764,7 +802,7 @@ public class LoginWindow extends JFrame {
         card.setPreferredSize(new Dimension(180, 300));
         card.setBackground(new Color(140, 108, 95));
 
-        // Center panel for cover image
+//Centre panel for cover image
         JPanel coverPanel = new RoundedPanel(20);
         coverPanel.setBackground(new Color(140, 108, 95));
 
@@ -828,71 +866,12 @@ public class LoginWindow extends JFrame {
     //Admin panel components
     private JPanel createBooksManagementPanel() {
 
-//
-//        // Toolbar
-//        JToolBar toolBar = new JToolBar();
-//        JButton addButton = new JButton("Add Book");
-//        JButton editButton = new JButton("Edit Book");
-//        JButton deleteButton = new JButton("Delete Book");
-//
-//        toolBar.add(addButton);
-//        toolBar.add(editButton);
-//        toolBar.add(deleteButton);
-//        toolBar.addSeparator();
-//
-//        // Table for books
-//        String[] columns = {"ID", "Title", "Author", "ISBN", "Status", "Location"};
-//        Object[][] data = {
-//                {1, "The Great Gatsby", "F. Scott Fitzgerald", "978-0-7432-7356-5", "Available", "A1"},
-//                {2, "To Kill a Mockingbird", "Harper Lee", "978-0-06-112008-4", "Checked Out", "B2"},
-//                {3, "1984", "George Orwell", "978-0-452-28423-4", "Available", "C3"}
-//        };
-//
-//        //Model
-//        javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(data, columns);
-//        JTable booksTable = new JTable(tableModel);
-//        JScrollPane scrollPane = new JScrollPane(booksTable);
-//
-//        // Search panel
-//        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-//        searchPanel.add(new JLabel("Search:"));
-//        searchPanel.add(new JTextField(20));
-//        searchPanel.add(new JButton("Search"));
-//
-//        //ADD create a new entry
-//        addButton.addActionListener(e ->{
-//            String title = JOptionPane.showInputDialog(this, "Enter Book Title: ");
-//            if (title != null && !title.trim().isEmpty()){
-//                tableModel.addRow(new Object[]{tableModel.getRowCount() + 1, title, "TBD", "N/A", "Available", "TBD"});
-//            }
-//        });
-//
-//        //Edit update a title of selected book
-//        editButton.addActionListener(e -> {
-//            int selectedRows = booksTable.getSelectedRow();
-//            if (selectedRows != -1){
-//                String currentTitle = (String) tableModel.getValueAt(selectedRows, 1);
-//                String updatedTitle = JOptionPane.showInputDialog(this, "Updated Title:", currentTitle);
-//                if (updatedTitle != null && !updatedTitle.trim().isEmpty()){
-//                    tableModel.setValueAt(updatedTitle, selectedRows, 1);
-//                }
-//                else {
-//                    JOptionPane.showMessageDialog(this, "Select a book first!");
-//                }
-//            }
-//        });
-//
-//        //Delete removes the row selected from the display
-//        deleteButton.addActionListener(e -> {
-//            int selectedRow = booksTable.getSelectedRow();
-//            if (selectedRow != -1){
-//                tableModel.removeRow(selectedRow);
-//            }
-//            else {
-//                JOptionPane.showMessageDialog(this, "Select a book to delete first!");
-//            }
-//        });
-//
+        String[] columns = {"Title","Author","First Publish Year","Edition Count"};
+
+        DefaultTableModel model = new DefaultTableModel(columns,0);
+        this.booksTable = new JTable(model);
+        model.addRow(new Object[]{"Test Book", "Test Author", "2024", "1"});
+
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
 
@@ -951,22 +930,108 @@ public class LoginWindow extends JFrame {
         //         };
         //         worker.execute();
         //     }
-        // }); 
-
-
+        // });
 
 
         toolBar.add(addBtn);
         toolBar.add(editBtn);
         toolBar.add(deleteBtn);
 
+        //ADD BOOK LOGIC
+        addBtn.addActionListener(e ->{
+            JTextField titleField = new JTextField();
+            JTextField authorField = new JTextField();
+            JTextField yearField = new JTextField();
+            JTextField isbnField = new JTextField();
+
+            Object[]  formElements = {
+                    "Book Title: ", titleField,
+                    "Author: ", authorField,
+                    "Publish Year: ", yearField,
+                    "ISBN: ", isbnField
+            };
+
+            int result = JOptionPane.showConfirmDialog(null, formElements, "Add new book to local Library", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()){
+                //DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
+                booksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                booksTable.setRowSelectionAllowed(true);
+                booksTable.setColumnSelectionAllowed(false);
+
+                //int newRowIndex = currentData.getRowCount();
+                //currentData.setRowCount(newRowIndex + 1);
+
+                //currentData.setValueAt(titleField.getText().trim(), newRowIndex, 0);
+                //currentData.setValueAt(authorField.getText().trim(), newRowIndex, 1);
+                //currentData.setValueAt(yearField.getText().trim(), newRowIndex, 2);
+                //currentData.setValueAt(isbnField.getText().trim(), newRowIndex, 3);
+
+                //booksTable.revalidate();
+                //booksTable.repaint();
+            }
+        });
+        //edit button logic
+        editBtn.addActionListener(e -> {
+            int selectedRow = booksTable.getSelectedRow();
+
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select a book to edit.");
+                return;
+            }
+
+            String currentTitle = (String) model.getValueAt(selectedRow, 0);
+            String currentAuthor = (String) model.getValueAt(selectedRow, 1);
+            String currentYear = (String) model.getValueAt(selectedRow, 2);
+            String currentISBN = (String) model.getValueAt(selectedRow, 3);
+
+            JTextField titleField = new JTextField(currentTitle);
+            JTextField authorField = new JTextField(currentAuthor);
+            JTextField yearField = new JTextField(currentYear);
+            JTextField isbnField = new JTextField(currentISBN);
+
+            Object[] form = {
+                    "Title:", titleField,
+                    "Author:", authorField,
+                    "Year:", yearField,
+                    "ISBN:", isbnField
+            };
+
+            int result = JOptionPane.showConfirmDialog(null, form, "Edit Book", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                model.setValueAt(titleField.getText(), selectedRow, 0);
+                model.setValueAt(authorField.getText(), selectedRow, 1);
+                model.setValueAt(yearField.getText(), selectedRow, 2);
+                model.setValueAt(isbnField.getText(), selectedRow, 3);
+            }
+            });
+
+        //delete button logic
+        deleteBtn.addActionListener(e -> {
+            int selectedRow = booksTable.getSelectedRow();
+
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select a book to delete.");
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure you want to delete this book?",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                model.removeRow(selectedRow);
+            }
+        });
+
 
         panel.add(toolBar, BorderLayout.NORTH);
 
-        String[] columns = {"Title","Author","First Publish Year","Edition Count"};
 
-        DefaultTableModel model = new DefaultTableModel(columns,0);
-        JTable booksTable = new JTable(model);
 
         booksTable.setRowHeight(32);
 
@@ -999,6 +1064,65 @@ public class LoginWindow extends JFrame {
 
         JButton searchBtn = new RoundedButton("Search");
         searchBtn.setPreferredSize(new Dimension(100,35));
+
+        //API search
+        searchBtn.addActionListener(e -> {
+            String query = searchField.getText().trim();
+
+            if (!query.isEmpty()) {
+                searchBtn.setText("Loading...");
+                searchBtn.setEnabled(false);
+
+                model.setRowCount(0); // clear table
+
+                SwingWorker<JsonArray, Void> worker = new SwingWorker<>() {
+
+                    @Override
+                    protected JsonArray doInBackground() {
+                        return API.searchBooks(query);
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            JsonArray results = get();
+
+                            for (int i = 0; i < Math.min(results.size(), 15); i++) {
+                                JsonObject book = results.get(i).getAsJsonObject();
+
+                                String title = book.has("title")
+                                        ? book.get("title").getAsString()
+                                        : "Unknown";
+
+                                String author = "Unknown";
+                                if (book.has("author_name")) {
+                                    author = book.get("author_name")
+                                            .getAsJsonArray().get(0).getAsString();
+                                }
+
+                                String year = book.has("first_publish_year")
+                                        ? book.get("first_publish_year").getAsString()
+                                        : "N/A";
+
+                                String edition = book.has("edition_count")
+                                        ? book.get("edition_count").getAsString()
+                                        : "N/A";
+
+                                model.addRow(new Object[]{title, author, year, edition});
+                            }
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        } finally {
+                            searchBtn.setText("Search");
+                            searchBtn.setEnabled(true);
+                        }
+                    }
+                };
+
+                worker.execute();
+            }
+        });
 
         searchPanel.add(searchLabel);
         searchPanel.add(searchField);

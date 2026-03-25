@@ -5,10 +5,6 @@ import static org.junit.Assert.*;
 import javax.swing.*;
 import java.lang.reflect.*;
 
-
-
-
-
 //to run:
 //cd C:\Users\zaina\IdeaProjects\Snow_Co\UI\src
 //
