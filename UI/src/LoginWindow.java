@@ -802,7 +802,7 @@ public class LoginWindow extends JFrame {
         card.setPreferredSize(new Dimension(180, 300));
         card.setBackground(new Color(140, 108, 95));
 
-        // Center panel for cover image
+//Centre panel for cover image
         JPanel coverPanel = new RoundedPanel(20);
         coverPanel.setBackground(new Color(140, 108, 95));
 
