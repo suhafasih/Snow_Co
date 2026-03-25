@@ -863,7 +863,7 @@ public class LoginWindow extends JFrame {
     }
 
 
-    //Admin panel components
+    //Admin panel Components
     private JPanel createBooksManagementPanel() {
 
         String[] columns = {"Title","Author","First Publish Year","Edition Count"};

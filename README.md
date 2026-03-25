@@ -15,25 +15,37 @@ Make sure the following are installed on your system:
 - **Git**
 - **Gson Library** (`gson-2.10.1.jar` included in the `lib` folder)
 
-## 2. Compile the Program
+## 2. Developer Onboarding: How to Compile, Test, and Run
 
-Navigate to the project directory in the terminal and compile the Java files:
+Welcome to the team! To make onboarding as seamless as possible, we have automated the build and execution process. You do not need to manually configure the Java classpath or compile individual files.
 
-bash:
+### For Windows Users
+1. Open your Command Prompt or PowerShell and navigate to the root directory of the project (`Snow_Co`).
+2. Execute the batch script to compile and launch:
+   `.\run.bat`
+
+### For Mac / Linux Users
+1. Open your terminal and navigate to the root directory of the project (`Snow_Co`).
+2. Grant execution permissions to the shell script (you only need to do this once):
+   `chmod +x run.sh`
+3. Execute the script to compile and launch:
+   `./run.sh`
+
+### What these scripts do automatically:
+When you run either script, the system will perform the following steps to ensure a clean build:
+* **Clean:** Deletes any outdated `.class` files in the `target/classes` directory.
+* **Link:** Automatically connects the necessary dependencies located in `UI/lib/` (`gson.jar` and `junit.jar`).
+* **Compile:** Compiles all source code and test files from the `UI/src/` directory into the `target` folder.
+* **Launch:** Starts the Java Virtual Machine and launches the `LoginWindow` application.
+
 ---
-javac -cp ".;../lib/gson-2.10.1.jar" *.java
 
 ## 3. Run the Application
 
-Run LoginWindow to start the program using:
+If the build is successful, the program will automatically open the Login Window.
 
-java -cp ".;../lib/gson-2.10.1.jar" LoginWindow
+Log in using either of the following test accounts:
 
-## 4. Using the Application
-
-The program will open the Login Window.
-
-Log in using either:
 ### User account → Opens the User Dashboard:
 - Username is user.
 - User password is password.
