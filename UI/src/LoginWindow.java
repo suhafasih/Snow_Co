@@ -485,7 +485,7 @@ public class LoginWindow extends JFrame {
         // Load More button
         JButton loadMoreBtn = new RoundedButton("Load More Books");
         loadMoreBtn.setBackground(sand);
-        loadMoreBtn.setForeground(darkBrown);
+        loadMoreBtn.setForeground(Color.WHITE);
         loadMoreBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         loadMoreBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         loadMoreBtn.setMaximumSize(new Dimension(200, 40));
@@ -870,7 +870,6 @@ public class LoginWindow extends JFrame {
 
         DefaultTableModel model = new DefaultTableModel(columns,0);
         this.booksTable = new JTable(model);
-        model.addRow(new Object[]{"Test Book", "Test Author", "2024", "1"});
 
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
@@ -955,9 +954,6 @@ public class LoginWindow extends JFrame {
 
             if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()){
                 DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
-                //booksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                //booksTable.setRowSelectionAllowed(true);
-                //booksTable.setColumnSelectionAllowed(false);
 
                 int newRowIndex = currentData.getRowCount();
                 currentData.setRowCount(newRowIndex + 1);
