@@ -26,7 +26,7 @@ public class BookDetailViewTest {
 
     private LoginWindow loginWindow;
 
-    // Runs before each test — creates a fresh LoginWindow instance
+    // Runs before each test, this creates a fresh LoginWindow instance
     @Before
     public void setUp() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
@@ -34,7 +34,7 @@ public class BookDetailViewTest {
         });
     }
 
-    // Runs after each test — closes the window to free up memory
+    // Runs after each test so it closes the window to free up memory
     @After
     public void tearDown() {
         if (loginWindow != null) {
@@ -61,8 +61,8 @@ public class BookDetailViewTest {
         assertNotNull("Constructor must exist", constructor);
     }
 
-    // Checks that getBookTitle() returns the full untruncated title.
-    // Important because the card view cuts titles off at 20 characters.
+    // Checks that getBookTitle() returns the full title.
+    // Important because the card view  cuts titles off at 20 characters.
     @Test
     public void test3_BookDetailPanel_DisplaysFullTitle() throws Exception {
         Class<?> clazz = Class.forName("BookDetailPanel");
@@ -76,7 +76,7 @@ public class BookDetailViewTest {
     }
 
     // Checks that the Borrow button exists and is enabled
-    // when a book's status is Available\ so the user can borrow it.
+    // so basically : If status = "Available" then thebutton is enabled
     @Test
     public void test4_BorrowButton_VisibleWhenAvailable() throws Exception {
         Class<?> clazz = Class.forName("BookDetailPanel");
@@ -91,7 +91,7 @@ public class BookDetailViewTest {
     }
 
     // Checks that the Borrow button is disabled when a book is
-    // already "Checked Out" — user should not be able to borrow it.
+    // already "Checked Out" so then the user should not be able to borrow it.
     @Test
     public void test5_BorrowButton_DisabledWhenCheckedOut() throws Exception {
         Class<?> clazz = Class.forName("BookDetailPanel");
@@ -116,7 +116,7 @@ public class BookDetailViewTest {
     }
 
     // Checks that getDescription() returns the full synopsis text
-    // passed in at construction — nothing should be lost or trimmed
+    // passed in at construction, nothing should be lost or trimmed
     @Test
     public void test7_BookDetailPanel_ReturnsDescription() throws Exception {
         Class<?> clazz = Class.forName("BookDetailPanel");
@@ -131,7 +131,7 @@ public class BookDetailViewTest {
     }
 
     // Checks that getAuthorName() returns exactly the author string
-    // passed in — used to display the author in the detail view.
+    // used to display the author in the detail view.
     @Test
     public void test8_BookDetailPanel_ReturnsAuthor() throws Exception {
         Class<?> clazz = Class.forName("BookDetailPanel");
@@ -145,7 +145,7 @@ public class BookDetailViewTest {
     }
 
     // Checks that getStatus() correctly reflects whether a book is
-    // "Available" or "Checked Out" — tested with both values.
+    // "Available" or "Checked Out",  tested with both values.
     @Test
     public void test9_BookDetailPanel_ReturnsCorrectStatus() throws Exception {
         Class<?> clazz = Class.forName("BookDetailPanel");
