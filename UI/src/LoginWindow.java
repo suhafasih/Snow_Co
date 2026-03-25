@@ -954,21 +954,21 @@ public class LoginWindow extends JFrame {
             int result = JOptionPane.showConfirmDialog(null, formElements, "Add new book to local Library", JOptionPane.OK_CANCEL_OPTION);
 
             if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()){
-                //DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
-                booksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                booksTable.setRowSelectionAllowed(true);
-                booksTable.setColumnSelectionAllowed(false);
+                DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
+                //booksTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                //booksTable.setRowSelectionAllowed(true);
+                //booksTable.setColumnSelectionAllowed(false);
 
-                //int newRowIndex = currentData.getRowCount();
-                //currentData.setRowCount(newRowIndex + 1);
+                int newRowIndex = currentData.getRowCount();
+                currentData.setRowCount(newRowIndex + 1);
 
-                //currentData.setValueAt(titleField.getText().trim(), newRowIndex, 0);
-                //currentData.setValueAt(authorField.getText().trim(), newRowIndex, 1);
-                //currentData.setValueAt(yearField.getText().trim(), newRowIndex, 2);
-                //currentData.setValueAt(isbnField.getText().trim(), newRowIndex, 3);
+                currentData.setValueAt(titleField.getText().trim(), newRowIndex, 0);
+                currentData.setValueAt(authorField.getText().trim(), newRowIndex, 1);
+                currentData.setValueAt(yearField.getText().trim(), newRowIndex, 2);
+                currentData.setValueAt(isbnField.getText().trim(), newRowIndex, 3);
 
-                //booksTable.revalidate();
-                //booksTable.repaint();
+                booksTable.revalidate();
+                booksTable.repaint();
             }
         });
         //edit button logic
