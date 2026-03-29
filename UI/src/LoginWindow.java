@@ -25,6 +25,11 @@ public class LoginWindow extends JFrame {
     private String currentUser = "";
     private String currentUserRole = "";
     private JTable booksTable;
+    private java.util.List<String[]> borrowedBooks = new java.util.ArrayList<>(); // to refresh UI
+    private JLabel countBadge;
+    private java.util.List<String[]> allBooks = new java.util.ArrayList<>();
+    private int currentPage = 0;
+    private final int BOOKS_PER_PAGE = 8;
 
     // Dashboard panels
     private JPanel mainPanel;
@@ -32,6 +37,7 @@ public class LoginWindow extends JFrame {
     private JPanel adminDashboard;
     private JPanel userDashboard;
     private CardLayout cardLayout;
+    private JPanel borrowedGridPanel;
 
     public LoginWindow() {
         setTitle("Library Login");
@@ -366,8 +372,8 @@ public class LoginWindow extends JFrame {
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         searchField.putClientProperty("JTextField.placeholderText", "Search for books, authors, or genres...");
 
-
-        JButton searchButton = new RoundedButton("Search");
+        String inspect = "\uD83D\uDD0E";
+        JButton searchButton = new RoundedButton("Search " + inspect);
         searchButton.setBackground(warmBrown);
         searchButton.setForeground(Color.WHITE);
         searchButton.setPreferredSize(new Dimension(100, 45));
@@ -376,15 +382,14 @@ public class LoginWindow extends JFrame {
         searchPanel.add(searchField, BorderLayout.CENTER);
         searchPanel.add(searchButton, BorderLayout.EAST);
 
-        content.add(searchPanel);
-        content.add(Box.createVerticalStrut(30));
+        //content.add(searchPanel);
+        //content.add(Box.createVerticalStrut(30));
 
         JLabel categoriesLabel = new JLabel("Browse Categories");
-        categoriesLabel.setFont(new Font("Georgia", Font.BOLD, 20));
+        categoriesLabel.setFont(new Font("Georgia", Font.BOLD, 22));
         categoriesLabel.setForeground(darkBrown);
         categoriesLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(categoriesLabel);
-        content.add(Box.createVerticalStrut(15));
+
 
         JPanel categoryPills = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         categoryPills.setBackground(cream);
@@ -395,33 +400,87 @@ public class LoginWindow extends JFrame {
                 "Fantasy", "Biography", "History", "Non-Fiction"
         };
 
+        JPanel allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
+        allBooksGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         for (String cat : categories) {
-            JButton pill = new JButton(cat);
-            pill.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            pill.setForeground(darkBrown);
-            pill.setBackground(sand);
-            pill.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(sage, 1),
-                    BorderFactory.createEmptyBorder(8, 15, 8, 15)
-            ));
+            JButton pill = new RoundedButton(cat);
+            pill.setFont(new Font("Segoe UI", Font.BOLD, 13));
+            pill.setForeground(Color.WHITE);
+            pill.setBackground(new Color(235, 225, 210)); // soft sand
             pill.setFocusPainted(false);
             pill.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+            //rounded + padded look
+            pill.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(sage, 1),
+                    BorderFactory.createEmptyBorder(10, 18, 10, 18)
+            ));
+
+            //smooth hover effect
             pill.addMouseListener(new MouseAdapter() {
                 public void mouseEntered(MouseEvent e) {
                     pill.setBackground(sage);
                     pill.setForeground(Color.WHITE);
+                    pill.setBorder(BorderFactory.createCompoundBorder(
+                            BorderFactory.createLineBorder(moss, 2),
+                            BorderFactory.createEmptyBorder(9, 17, 9, 17)
+                    ));
                 }
+
                 public void mouseExited(MouseEvent e) {
-                    pill.setBackground(sand);
-                    pill.setForeground(darkBrown);
+                    pill.setBackground(new Color(235, 225, 210));
+                    pill.setForeground(Color.WHITE);
+                    pill.setBorder(BorderFactory.createCompoundBorder(
+                            BorderFactory.createLineBorder(sage, 1),
+                            BorderFactory.createEmptyBorder(10, 18, 10, 18)
+                    ));
                 }
             });
+
+            //click effect (selected state)
+            pill.addActionListener(e -> {
+                for (Component c : categoryPills.getComponents()) {
+                    if (c instanceof JButton btn) {
+                        btn.setBackground(new Color(235, 225, 210));
+                        btn.setForeground(Color.WHITE);
+                    }
+                }
+
+                pill.setBackground(moss);
+                pill.setForeground(Color.WHITE);
+            });
+
+            pill.addActionListener(e -> {
+
+                String query;
+
+                if (cat.equals("All")) {
+                    query = "popular books";
+                } else {
+                    query = cat;
+                }
+
+                //put query into search field (optional but nice)
+                searchField.setText(query);
+
+                //trigger existing search logic
+                searchButton.doClick();
+            });
+
+
 
             categoryPills.add(pill);
         }
 
+        //adding the categories
+        content.add(categoriesLabel);
+        content.add(Box.createVerticalStrut(15));
         content.add(categoryPills);
+        content.add(Box.createVerticalStrut(25));
+
+        //adding the search bar
+        content.add(searchPanel);
         content.add(Box.createVerticalStrut(30));
 
         //currently borrowed
@@ -435,7 +494,7 @@ public class LoginWindow extends JFrame {
         borrowedLabel.setForeground(darkBrown);
 
         //count badge
-        JLabel countBadge = new JLabel("2 books");
+        countBadge = new JLabel("0 books");
         countBadge.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         countBadge.setForeground(sage);
         countBadge.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
@@ -450,12 +509,20 @@ public class LoginWindow extends JFrame {
         content.add(borrowedHeader);
         content.add(Box.createVerticalStrut(15));
 
-        JPanel borrowedGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, true);
-        borrowedGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(borrowedGrid);
-        content.add(Box.createVerticalStrut(40));
+        borrowedGridPanel = createBorrowedBooksGrid();
+        borrowedGridPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        borrowedGridPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, borrowedGridPanel.getPreferredSize().height));
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(cream);
+        wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        wrapper.add(borrowedGridPanel, BorderLayout.CENTER);
+        content.add(Box.createVerticalStrut(15));
+        content.add(wrapper);
+
 
         // all books
+
         JPanel allBooksHeader = new JPanel(new BorderLayout());
         allBooksHeader.setBackground(cream);
         allBooksHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -478,8 +545,7 @@ public class LoginWindow extends JFrame {
         content.add(allBooksHeader);
         content.add(Box.createVerticalStrut(15));
 
-        JPanel allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
-        allBooksGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         content.add(allBooksGrid);
 
         // Load More button
@@ -491,6 +557,21 @@ public class LoginWindow extends JFrame {
         loadMoreBtn.setMaximumSize(new Dimension(200, 40));
         loadMoreBtn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
+        loadMoreBtn.addActionListener(e -> {
+            currentPage++;
+
+            int maxPage = (int) Math.ceil((double) allBooks.size() / BOOKS_PER_PAGE);
+
+            if (currentPage < maxPage) {
+                renderBooks(allBooksGrid, sage, warmBrown, darkBrown, sand, moss, terracotta);
+            }
+
+            if (currentPage >= maxPage - 1) {
+                loadMoreBtn.setEnabled(false);
+                loadMoreBtn.setText("No More Books");
+            }
+        });
+
         loadMoreBtn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 loadMoreBtn.setBackground(sage);
@@ -498,7 +579,7 @@ public class LoginWindow extends JFrame {
             }
             public void mouseExited(MouseEvent e) {
                 loadMoreBtn.setBackground(sand);
-                loadMoreBtn.setForeground(darkBrown);
+                loadMoreBtn.setForeground(Color.WHITE);
             }
         });
 
@@ -513,7 +594,6 @@ public class LoginWindow extends JFrame {
             if (!query.trim().isEmpty()) {
                 searchButton.setText("Loading...");
                 searchButton.setEnabled(false);
-                allBooksGrid.removeAll();
 
                 // Use swignWorker to fetch data in the background
                 SwingWorker<JsonArray, Void> worker = new SwingWorker<JsonArray, Void>() {
@@ -525,12 +605,19 @@ public class LoginWindow extends JFrame {
                     @Override
                     protected void done() {
                         try {
-                            JsonArray results = get(); // Get the background results
+                            JsonArray results = get();
+                            allBooks.clear(); // clear old results
+                            currentPage = 0;
+                            loadMoreBtn.setEnabled(true);
+                            loadMoreBtn.setText("Load More Books");
+                            allBooksGrid.removeAll(); // clear UI FIRST
 
-                            for (int i = 0; i < Math.min(results.size(), 8); i++) {
+                            // 🔥 STEP 1: store books
+                            for (int i = 0; i < Math.min(results.size(), 20); i++) {
                                 JsonObject book = results.get(i).getAsJsonObject();
 
                                 String bookTitle = book.has("title") ? book.get("title").getAsString() : "Unknown Title";
+
                                 String bookAuthor = "Unknown Author";
                                 if (book.has("author_name")) {
                                     bookAuthor = book.get("author_name").getAsJsonArray().get(0).getAsString();
@@ -542,9 +629,20 @@ public class LoginWindow extends JFrame {
                                     coverUrl = "https://covers.openlibrary.org/b/id/" + coverId + "-L.jpg";
                                 }
 
-                                allBooksGrid.add(createEarthyBookCard(bookTitle, bookAuthor, coverUrl, "Available", "",
-                                        sage, warmBrown, darkBrown, sand, moss, terracotta));
+                                // 🔥 THIS is where subject/category comes from
+                                String category = "Unknown";
+                                if (book.has("subject")) {
+                                    JsonArray subjects = book.getAsJsonArray("subject");
+                                    if (subjects.size() > 0) {
+                                        category = subjects.get(0).getAsString();
+                                    }
+                                }
+
+                                allBooks.add(new String[]{bookTitle, bookAuthor, coverUrl, "Available", category});
                             }
+
+                            //render AFTER loop
+                            renderBooks(allBooksGrid, sage, warmBrown, darkBrown, sand, moss, terracotta);
 
                             allBooksGrid.revalidate();
                             allBooksGrid.repaint();
@@ -552,7 +650,6 @@ public class LoginWindow extends JFrame {
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         } finally {
-                            // Reset the button once the search is done
                             searchButton.setText("Search");
                             searchButton.setEnabled(true);
                         }
@@ -572,6 +669,39 @@ public class LoginWindow extends JFrame {
         scrollPane.getVerticalScrollBar().setBackground(sand);
 
         userDashboard.add(scrollPane, BorderLayout.CENTER);
+        updateBorrowedCount();
+    }
+    private void updateBorrowedCount() {
+        int count = borrowedBooks.size();
+
+        if (count == 1) {
+            countBadge.setText("1 book");
+        } else {
+            countBadge.setText(count + " books");
+        }
+    }
+
+    private JPanel createBorrowedBooksGrid() {
+        JPanel grid = new JPanel(new GridLayout(0, 4, 20, 20));
+        grid.setBackground(new Color(245, 240, 230));
+
+        for (String[] book : borrowedBooks) {
+            grid.add(createEarthyBookCard(
+                    book[0], // title
+                    book[1], // author
+                    book[2], // cover
+                    "Due in 7 days",
+                    "normal",
+                    new Color(156,165,118),
+                    new Color(140,100,85),
+                    new Color(80,60,50),
+                    new Color(220,210,190),
+                    new Color(110,120,90),
+                    new Color(190,120,90)
+            ));
+        }
+
+        return grid;
     }
 
     private JPanel createEarthyBooksGrid(Color sage, Color warmBrown, Color darkBrown, Color sand, Color moss, Color terracotta, boolean isBorrowed) {
@@ -587,14 +717,14 @@ public class LoginWindow extends JFrame {
             };
         } else {
             books = new String[][]{
-                    {"The Silent Patient", "Alex Michaelides", "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg", "Available", ""},
-                    {"Project Hail Mary", "Andy Weir", "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg", "Available", ""},
-                    {"Educated", "Tara Westover", "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", "Checked Out", ""},
-                    {"The Song of Achilles", "Madeline Miller", "https://covers.openlibrary.org/b/isbn/9780062060624-L.jpg", "Available", ""},
-                    {"Dune", "Frank Herbert", "https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg", "Available", ""},
-                    {"Becoming", "Michelle Obama", "https://covers.openlibrary.org/b/isbn/9781524763138-L.jpg", "Available", ""},
-                    {"Where the Crawdads Sing", "Delia Owens", "https://covers.openlibrary.org/b/isbn/9780735219090-L.jpg", "Checked Out", ""},
-                    {"Atomic Habits", "James Clear", "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", "Available", ""}
+                    {"The Silent Patient", "Alex Michaelides", "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg", "Available", "", "Mystery"},
+                    {"Project Hail Mary", "Andy Weir", "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg", "Available", "", "Sci-Fi"},
+                    {"Educated", "Tara Westover", "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", "Checked Out", "", "Biography"},
+                    {"The Song of Achilles", "Madeline Miller", "https://covers.openlibrary.org/b/isbn/9780062060624-L.jpg", "Available", "", "Fantasy"},
+                    {"Dune", "Frank Herbert", "https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg", "Available", "", "Sci-Fi"},
+                    {"Becoming", "Michelle Obama", "https://covers.openlibrary.org/b/isbn/9781524763138-L.jpg", "Available", "", "Biography"},
+                    {"Where the Crawdads Sing", "Delia Owens", "https://covers.openlibrary.org/b/isbn/9780735219090-L.jpg", "Checked Out", "", "Romance"},
+                    {"Atomic Habits", "James Clear", "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", "Available", "", "Non-Fiction"}
             };
         }
 
@@ -722,15 +852,30 @@ public class LoginWindow extends JFrame {
             });
 
             borrowBtn.addActionListener(e -> {
-               JOptionPane.showMessageDialog(null, "Successfully borrowed: " + title + "Book loaned");
+                JOptionPane.showMessageDialog(null, "Successfully borrowed: " + title);
 
-               statusLabel.setText("Due in 7 days");
-               statusLabel.setForeground(new Color(200, 100, 50));
-               statusBadge.setBackground(new Color(255, 235, 215));
+                // Add to borrowed list
+                borrowedBooks.add(new String[]{title, author, coverUrl});
 
-               borrowBtn.setVisible(false);
-               card.revalidate();
-               card.repaint();
+                //update book status
+                for (String[] b : allBooks) {
+                    if (b[0].equals(title)) {
+                        b[3] = "Checked Out";
+                        break;
+                    }
+                }
+
+                // Update UI
+                refreshBorrowedBooks();
+                updateBorrowedCount();
+
+                statusLabel.setText("Checked Out");
+                statusLabel.setForeground(terracotta);
+                statusBadge.setBackground(new Color(240, 225, 215));
+
+                borrowBtn.setVisible(false);
+                card.revalidate();
+                card.repaint();
             });
 
             infoPanel.add(borrowBtn);
@@ -754,6 +899,52 @@ public class LoginWindow extends JFrame {
         });
 
         return card;
+    }
+
+    private void refreshBorrowedBooks() {
+        borrowedGridPanel.removeAll();
+
+        for (String[] book : borrowedBooks) {
+            borrowedGridPanel.add(createEarthyBookCard(
+                    book[0],
+                    book[1],
+                    book[2],
+                    "Due in 7 days",
+                    "normal",
+                    new Color(156,165,118),
+                    new Color(140,100,85),
+                    new Color(80,60,50),
+                    new Color(220,210,190),
+                    new Color(110,120,90),
+                    new Color(190,120,90)
+            ));
+        }
+
+        borrowedGridPanel.revalidate();
+        borrowedGridPanel.repaint();
+    }
+    private void renderBooks(JPanel allBooksGrid,
+                             Color sage, Color warmBrown, Color darkBrown,
+                             Color sand, Color moss, Color terracotta) {
+
+        int start = currentPage * BOOKS_PER_PAGE;
+        int end = Math.min(start + BOOKS_PER_PAGE, allBooks.size());
+
+        for (int i = start; i < end; i++) {
+            String[] b = allBooks.get(i);
+
+            allBooksGrid.add(createEarthyBookCard(
+                    b[0],
+                    b[1],
+                    b[2],
+                    b[3],
+                    "",
+                    sage, warmBrown, darkBrown, sand, moss, terracotta
+            ));
+        }
+
+        allBooksGrid.revalidate();
+        allBooksGrid.repaint();
     }
 
     private String getCurrentDate() {
@@ -898,39 +1089,6 @@ public class LoginWindow extends JFrame {
         addBtn.setPreferredSize(new Dimension(120,35));
         editBtn.setPreferredSize(new Dimension(120,35));
         deleteBtn.setPreferredSize(new Dimension(120,35));
-
-        // //API search for admin dashboard
-        // searchBtn.addActionListener(e ->{
-        //     if (!query.isEmpty()){
-        //         searchBtn.setText("Fetch....");
-        //         searchBtn.setEnabled(false);
-        //         model.setRowCount(0); //will clear the current data table
-                
-        //         SwingWorker<JsonArray, Void> worker = new SwingWorker<>(){
-        //             @Override
-        //             protected JsonArray doInBackground() {
-        //                 return API.searchBooks(query);
-        //             }
-
-        //             @Override
-        //             protected void done(){
-        //                 try {
-        //                     JsonArray results = get();
-        //                     for (int i = 0; i < Math.min(results.size(), 15); i++){
-        //                         JsonObject book = results.get(i).getAsJsonObject();
-        //                         String t = book.has("title") ? book.get("title").getAsString() : "Unknown";
-        //                         String a = book.has("author_name") ? book.get("author_name").getAsJsonArray().get(0).getAsString() : "Unknown";
-        //                         model.addRow(new Object[]{t , a});
-        //                     }
-        //                 } catch (Exception ex){
-        //                     ex.printStackTrace();
-        //                 }
-        //             }
-        //         };
-        //         worker.execute();
-        //     }
-        // });
-
 
         toolBar.add(addBtn);
         toolBar.add(editBtn);
@@ -1135,6 +1293,7 @@ public class LoginWindow extends JFrame {
 
         return panel;
     }
+
 
     private JPanel createMyAccountPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
