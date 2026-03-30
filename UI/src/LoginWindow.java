@@ -38,6 +38,7 @@ public class LoginWindow extends JFrame {
     private JPanel userDashboard;
     private CardLayout cardLayout;
     private JPanel borrowedGridPanel;
+    private JPanel allBooksGrid;
 
     public LoginWindow() {
         setTitle("Library Login");
@@ -224,13 +225,12 @@ public class LoginWindow extends JFrame {
 
     private JPanel createAdminActionCards(Color sage, Color warmBrown, Color darkBrown, Color sand) {
 
-        JPanel grid = new JPanel(new GridLayout(1,4,10,0));
+        JPanel grid = new JPanel(new GridLayout(1,4,5,0));
         grid.setBackground(new Color(245,240,230));
         grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,80));
 
         grid.add(createAdminCard("Manage Books",sage,darkBrown,sand));
-        grid.add(createAdminCard("Manage Users",sage,darkBrown,sand));
-        grid.add(createAdminCard("Overdue Books",sage,darkBrown,sand));
+        grid.add(createAdminCard("Manage Reviews",sage,darkBrown,sand));
 
         return grid;
     }
@@ -382,8 +382,6 @@ public class LoginWindow extends JFrame {
         searchPanel.add(searchField, BorderLayout.CENTER);
         searchPanel.add(searchButton, BorderLayout.EAST);
 
-        //content.add(searchPanel);
-        //content.add(Box.createVerticalStrut(30));
 
         JLabel categoriesLabel = new JLabel("Browse Categories");
         categoriesLabel.setFont(new Font("Georgia", Font.BOLD, 22));
@@ -400,7 +398,7 @@ public class LoginWindow extends JFrame {
                 "Fantasy", "Biography", "History", "Non-Fiction"
         };
 
-        JPanel allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
+        allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
         allBooksGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         for (String cat : categories) {
@@ -460,16 +458,12 @@ public class LoginWindow extends JFrame {
                 } else {
                     query = cat;
                 }
-
                 //put query into search field (optional but nice)
                 searchField.setText(query);
 
                 //trigger existing search logic
                 searchButton.doClick();
             });
-
-
-
             categoryPills.add(pill);
         }
 
@@ -897,8 +891,72 @@ public class LoginWindow extends JFrame {
                 ));
             }
         });
+        //return button logic
+        if (status.contains("Due")) {
+            infoPanel.add(Box.createVerticalStrut(10));
+
+            JButton returnBtn = new JButton("Return Book");
+            returnBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            returnBtn.setBackground(terracotta);
+            returnBtn.setForeground(Color.WHITE);
+            returnBtn.setBorderPainted(false);
+            returnBtn.setFocusPainted(false);
+            returnBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            returnBtn.addActionListener(e -> {
+                JOptionPane.showMessageDialog(null, "Returned: " + title);
+
+                // Remove from borrowed
+                borrowedBooks.removeIf(b ->
+                        b[0].equals(title) && b[1].equals(author)
+                );
+
+                // Update status
+                for (String[] b : allBooks) {
+                    if (b[0].equals(title) && b[1].equals(author)) {
+                        b[3] = "Available";
+                        break;
+                    }
+                }
+
+                refreshBorrowedBooks();
+                updateBorrowedCount();
+
+                SwingUtilities.invokeLater(() -> {
+                    refreshAllBooksGrid();
+                });
+            });
+
+            infoPanel.add(returnBtn);
+        }
 
         return card;
+    }
+    private void refreshAllBooksGrid() {
+        allBooksGrid.removeAll();
+
+
+        if (allBooks.isEmpty()) {
+            allBooksGrid.add(new JLabel("No books available"));
+        } else {
+            renderBooks(
+                    allBooksGrid,
+                    new Color(156,165,118),
+                    new Color(140,100,85),
+                    new Color(80,60,50),
+                    new Color(220,210,190),
+                    new Color(110,120,90),
+                    new Color(190,120,90)
+            );
+        }
+
+        // 🔥 FORCE FULL UI REFRESH
+        allBooksGrid.revalidate();
+        allBooksGrid.repaint();
+
+        // 🔥 VERY IMPORTANT (fixes disappearing issue)
+        allBooksGrid.getParent().revalidate();
+        allBooksGrid.getParent().repaint();
     }
 
     private void refreshBorrowedBooks() {
