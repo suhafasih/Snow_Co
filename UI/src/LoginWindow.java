@@ -361,26 +361,42 @@ public class LoginWindow extends JFrame {
         content.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
 
-        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
-        searchPanel.setBackground(cream);
-        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-
+        //search Field
         JTextField searchField = new RoundedTextField(20);
-        searchField.setPreferredSize(new Dimension(200, 45));
+        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        searchField.putClientProperty("JTextField.placeholderText", "Search for books, authors, or genres...");
+        searchField.putClientProperty("JTextField.placeholderText", "Start typing to see suggestions...");
+        searchField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        String inspect = "\uD83D\uDD0E";
-        JButton searchButton = new RoundedButton("Search " + inspect);
+        //search Button
+        JButton searchButton = new RoundedButton("Search ");
         searchButton.setBackground(warmBrown);
         searchButton.setForeground(Color.WHITE);
-        searchButton.setPreferredSize(new Dimension(100, 45));
+        searchButton.setMaximumSize(new Dimension(200, 45));
         searchButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        searchButton.setAlignmentX(Component.LEFT_ALIGNMENT);//center under genre
 
-        searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(searchButton, BorderLayout.EAST);
+        //typing listener
+        //create debounce timer for the app to wait till user stop typing for 1/2s bf send the search request
+        javax.swing.Timer typingTimer = new javax.swing.Timer(600, e -> {
+            if (searchField.getText().trim().length() >= 3) {
+                searchButton.doClick();
+            }
+        });
+        typingTimer.setRepeats(false);
+
+        // 2. Update the Document Listener to use the Timer
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { resetTimer(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { resetTimer(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { resetTimer(); }
+
+            private void resetTimer() {
+                // Every time the user types a letter, restart the 600ms countdown.
+                // The search will only trigger if they stop typing for 600ms.
+                typingTimer.restart();
+            }
+        });
 
 
         JLabel categoriesLabel = new JLabel("Browse Categories");
@@ -467,14 +483,17 @@ public class LoginWindow extends JFrame {
             categoryPills.add(pill);
         }
 
-        //adding the categories
+        //search bar
+        content.add(searchField);
+        content.add(Box.createVerticalStrut(25));
+        //browse categories
         content.add(categoriesLabel);
         content.add(Box.createVerticalStrut(15));
+        //genre pills
         content.add(categoryPills);
-        content.add(Box.createVerticalStrut(25));
-
-        //adding the search bar
-        content.add(searchPanel);
+        content.add(Box.createVerticalStrut(20));
+        //search button
+        content.add(searchButton);
         content.add(Box.createVerticalStrut(30));
 
         //currently borrowed
