@@ -548,18 +548,20 @@ public class LoginWindow extends JFrame {
             categoryPills.add(pill);
         }
 
-        //search bar
-        content.add(searchField);
-        content.add(Box.createVerticalStrut(25));
         //browse categories
         content.add(categoriesLabel);
         content.add(Box.createVerticalStrut(15));
         //genre pills
         content.add(categoryPills);
         content.add(Box.createVerticalStrut(20));
+        //search bar
+        content.add(searchField);
+        content.add(Box.createVerticalStrut(25));
         //search button
         content.add(searchButton);
         content.add(Box.createVerticalStrut(30));
+
+
 
         //currently borrowed
         JPanel borrowedHeader = new JPanel(new BorderLayout());
@@ -794,11 +796,11 @@ public class LoginWindow extends JFrame {
             books = new String[][]{
                     {"The Silent Patient", "Alex Michaelides", "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg", "Available", "", "Mystery"},
                     {"Project Hail Mary", "Andy Weir", "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg", "Available", "", "Sci-Fi"},
-                    {"Educated", "Tara Westover", "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", "Checked Out", "", "Biography"},
+                    {"Educated", "Tara Westover", "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", "Available", "", "Biography"},
                     {"The Song of Achilles", "Madeline Miller", "https://covers.openlibrary.org/b/isbn/9780062060624-L.jpg", "Available", "", "Fantasy"},
                     {"Dune", "Frank Herbert", "https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg", "Available", "", "Sci-Fi"},
                     {"Becoming", "Michelle Obama", "https://covers.openlibrary.org/b/isbn/9781524763138-L.jpg", "Available", "", "Biography"},
-                    {"Where the Crawdads Sing", "Delia Owens", "https://covers.openlibrary.org/b/isbn/9780735219090-L.jpg", "Checked Out", "", "Romance"},
+                    {"Where the Crawdads Sing", "Delia Owens", "https://covers.openlibrary.org/b/isbn/9780735219090-L.jpg", "Available", "", "Romance"},
                     {"Atomic Habits", "James Clear", "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", "Available", "", "Non-Fiction"}
             };
         }
