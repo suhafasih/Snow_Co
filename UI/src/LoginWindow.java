@@ -376,26 +376,69 @@ public class LoginWindow extends JFrame {
         searchButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         searchButton.setAlignmentX(Component.LEFT_ALIGNMENT);//center under genre
 
-        //typing listener
-        //create debounce timer for the app to wait till user stop typing for 1/2s bf send the search request
-        javax.swing.Timer typingTimer = new javax.swing.Timer(600, e -> {
-            if (searchField.getText().trim().length() >= 3) {
-                searchButton.doClick();
+//searching suggestion as dropdown menu
+        JPopupMenu suggestionMenu = new JPopupMenu();
+        suggestionMenu.setFocusable(false); //prevents the menu from stealing typing cursor
+
+        javax.swing.Timer typingTimer = new javax.swing.Timer(500, e -> {
+            String query = searchField.getText().trim();
+            if (query.length() >= 3) {
+
+                SwingWorker<JsonArray, Void> suggestionWorker = new SwingWorker<>() {
+                    @Override
+                    protected JsonArray doInBackground() {
+                        // Limit to 5 results so it loads instantly!
+                        return API.searchBooks(query + "&limit=5");
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            JsonArray results = get();
+                            suggestionMenu.removeAll(); //clear old suggestions
+
+                            if (results.size() > 0) {
+                                for (int i = 0; i < results.size(); i++) {
+                                    JsonObject book = results.get(i).getAsJsonObject();
+                                    String title = book.has("title") ? book.get("title").getAsString() : "";
+
+                                    if (!title.isEmpty()) {
+                                        JMenuItem item = new JMenuItem(title);
+                                        item.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                                        item.setBackground(Color.WHITE);
+                                        item.setForeground(darkBrown);
+
+                                        //when user click a suggestion
+                                        item.addActionListener(ev -> {
+                                            searchField.setText(title); // Fill the bar
+                                            suggestionMenu.setVisible(false); // Hide menu
+                                            searchButton.doClick(); //run the full search
+                                        });
+                                        suggestionMenu.add(item);
+                                    }
+                                }
+                                //pop the menu underneath the text field
+                                suggestionMenu.show(searchField, 0, searchField.getHeight());
+                                searchField.requestFocus(); //keep the blinking cursor in the text field
+                            } else {
+                                suggestionMenu.setVisible(false);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                };
+                suggestionWorker.execute();
+            } else {
+                suggestionMenu.setVisible(false);
             }
         });
         typingTimer.setRepeats(false);
 
-        // 2. Update the Document Listener to use the Timer
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { resetTimer(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { resetTimer(); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { resetTimer(); }
-
-            private void resetTimer() {
-                // Every time the user types a letter, restart the 600ms countdown.
-                // The search will only trigger if they stop typing for 600ms.
-                typingTimer.restart();
-            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { typingTimer.restart(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { typingTimer.restart(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { typingTimer.restart(); }
         });
 
 
@@ -764,22 +807,45 @@ public class LoginWindow extends JFrame {
         JPanel coverPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         coverPanel.setBackground(Color.WHITE);
 
-        try {
-            BufferedImage img = ImageIO.read(new URL(coverUrl));
-            Image scaled = img.getScaledInstance(140, 180, Image.SCALE_SMOOTH);
-            JLabel cover = new JLabel(new ImageIcon(scaled));
-            coverPanel.add(cover);
-        } catch (Exception e) {
-            JPanel placeholder = new JPanel();
-            placeholder.setPreferredSize(new Dimension(140, 180));
-            placeholder.setBackground(sand);
+        // 1. Instantly show a placeholder so the UI doesn't freeze
+        JPanel placeholder = new JPanel(new BorderLayout());
+        placeholder.setPreferredSize(new Dimension(140, 180));
+        placeholder.setBackground(sand);
 
-            JLabel noCoverLabel = new JLabel("📚");
-            noCoverLabel.setFont(new Font("Segoe UI", Font.PLAIN, 40));
-            noCoverLabel.setForeground(sage);
-            placeholder.add(noCoverLabel);
+        JLabel coverLabel = new JLabel("Loading...", SwingConstants.CENTER);
+        coverLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        coverLabel.setForeground(sage);
+        placeholder.add(coverLabel, BorderLayout.CENTER);
 
-            coverPanel.add(placeholder);
+        coverPanel.add(placeholder);
+
+        // 2. Fetch the actual image in the background
+        if (coverUrl != null && !coverUrl.isEmpty()) {
+            SwingWorker<ImageIcon, Void> imageWorker = new SwingWorker<>() {
+                @Override
+                protected ImageIcon doInBackground() throws Exception {
+                    // This happens in the background, freeing up your UI!
+                    BufferedImage img = ImageIO.read(new URL(coverUrl));
+                    Image scaled = img.getScaledInstance(140, 180, Image.SCALE_SMOOTH);
+                    return new ImageIcon(scaled);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        ImageIcon icon = get();
+                        // Once downloaded, swap the text for the image
+                        coverLabel.setText("");
+                        coverLabel.setIcon(icon);
+                    } catch (Exception e) {
+                        coverLabel.setText("No Cover");
+                        coverLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                    }
+                }
+            };
+            imageWorker.execute();
+        } else {
+            coverLabel.setText("No Cover");
         }
 
         card.add(coverPanel, BorderLayout.NORTH);
