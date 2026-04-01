@@ -606,7 +606,6 @@ public class LoginWindow extends JFrame {
                             loadMoreBtn.setText("Load More Books");
                             allBooksGrid.removeAll(); // clear UI FIRST
 
-                            // 🔥 STEP 1: store books
                             for (int i = 0; i < Math.min(results.size(), 20); i++) {
                                 JsonObject book = results.get(i).getAsJsonObject();
 
@@ -623,7 +622,6 @@ public class LoginWindow extends JFrame {
                                     coverUrl = "https://covers.openlibrary.org/b/id/" + coverId + "-L.jpg";
                                 }
 
-                                // 🔥 THIS is where subject/category comes from
                                 String category = "Unknown";
                                 if (book.has("subject")) {
                                     JsonArray subjects = book.getAsJsonArray("subject");
@@ -655,7 +653,6 @@ public class LoginWindow extends JFrame {
 
         searchField.addActionListener(performSearch);
         searchButton.addActionListener(performSearch);
-        // --------------------------------------
 
         JScrollPane scrollPane = new JScrollPane(content);
         scrollPane.setBorder(null);
