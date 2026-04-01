@@ -387,7 +387,7 @@ public class LoginWindow extends JFrame {
                 SwingWorker<JsonArray, Void> suggestionWorker = new SwingWorker<>() {
                     @Override
                     protected JsonArray doInBackground() {
-                        // Limit to 5 results so it loads instantly!
+                        // Using the general search so it catches authors, titles, and genres
                         return API.searchBooks(query + "&limit=5");
                     }
 
@@ -395,31 +395,53 @@ public class LoginWindow extends JFrame {
                     protected void done() {
                         try {
                             JsonArray results = get();
-                            suggestionMenu.removeAll(); //clear old suggestions
+                            suggestionMenu.removeAll();
 
                             if (results.size() > 0) {
                                 for (int i = 0; i < results.size(); i++) {
                                     JsonObject book = results.get(i).getAsJsonObject();
+
+                                    //get Title
                                     String title = book.has("title") ? book.get("title").getAsString() : "";
 
-                                    if (!title.isEmpty()) {
-                                        JMenuItem item = new JMenuItem(title);
-                                        item.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-                                        item.setBackground(Color.WHITE);
-                                        item.setForeground(darkBrown);
+                                    //get Author
+                                    String author = "";
+                                    if (book.has("author_name")) {
+                                        author = book.get("author_name").getAsJsonArray().get(0).getAsString();
+                                    }
 
-                                        //when user click a suggestion
+                                    //get Genre (Subject)
+                                    String genre = "";
+                                    if (book.has("subject")) {
+                                        genre = book.getAsJsonArray("subject").get(0).getAsString();
+                                    }
+
+                                    if (!title.isEmpty()) {
+                                        //descriptive string for the user to understands the match
+                                        String displayText = title;
+                                        if (!author.isEmpty()) displayText += " by " + author;
+                                        if (!genre.isEmpty()) displayText += " [" + genre + "]";
+
+                                        //limt display
+                                        if (displayText.length() > 65) {
+                                            displayText = displayText.substring(0, 62) + "...";
+                                        }
+
+                                        JMenuItem item = new JMenuItem(displayText);
+                                        item.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                                        item.setBackground(Color.WHITE);
+                                        item.setForeground(new Color(80, 60, 50));
+
                                         item.addActionListener(ev -> {
-                                            searchField.setText(title); // Fill the bar
-                                            suggestionMenu.setVisible(false); // Hide menu
-                                            searchButton.doClick(); //run the full search
+                                            searchField.setText(title);
+                                            suggestionMenu.setVisible(false);
+                                            searchButton.doClick();
                                         });
                                         suggestionMenu.add(item);
                                     }
                                 }
-                                //pop the menu underneath the text field
                                 suggestionMenu.show(searchField, 0, searchField.getHeight());
-                                searchField.requestFocus(); //keep the blinking cursor in the text field
+                                searchField.requestFocus();
                             } else {
                                 suggestionMenu.setVisible(false);
                             }
