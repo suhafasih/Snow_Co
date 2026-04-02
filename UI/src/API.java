@@ -12,7 +12,8 @@ public class API {
         try {
             query = query.replace(" ", "+");
 
-            String urlString = "https://openlibrary.org/search.json?q=" + query;
+            //only send back 20 results to reducing download time.
+            String urlString = "https://openlibrary.org/search.json?q=" + query + "&limit=20";
 
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();

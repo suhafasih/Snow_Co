@@ -38,6 +38,7 @@ public class LoginWindow extends JFrame {
     private JPanel userDashboard;
     private CardLayout cardLayout;
     private JPanel borrowedGridPanel;
+    private JPanel allBooksGrid;
 
     public LoginWindow() {
         setTitle("Library Login");
@@ -224,13 +225,12 @@ public class LoginWindow extends JFrame {
 
     private JPanel createAdminActionCards(Color sage, Color warmBrown, Color darkBrown, Color sand) {
 
-        JPanel grid = new JPanel(new GridLayout(1,4,10,0));
+        JPanel grid = new JPanel(new GridLayout(1,4,5,0));
         grid.setBackground(new Color(245,240,230));
         grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,80));
 
         grid.add(createAdminCard("Manage Books",sage,darkBrown,sand));
-        grid.add(createAdminCard("Manage Users",sage,darkBrown,sand));
-        grid.add(createAdminCard("Overdue Books",sage,darkBrown,sand));
+        grid.add(createAdminCard("Manage Reviews",sage,darkBrown,sand));
 
         return grid;
     }
@@ -361,29 +361,108 @@ public class LoginWindow extends JFrame {
         content.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
 
-        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
-        searchPanel.setBackground(cream);
-        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-
+        //search Field
         JTextField searchField = new RoundedTextField(20);
-        searchField.setPreferredSize(new Dimension(200, 45));
+        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        searchField.putClientProperty("JTextField.placeholderText", "Search for books, authors, or genres...");
+        searchField.putClientProperty("JTextField.placeholderText", "Start typing to see suggestions...");
+        searchField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        String inspect = "\uD83D\uDD0E";
-        JButton searchButton = new RoundedButton("Search " + inspect);
+        //search Button
+        JButton searchButton = new RoundedButton("Search ");
         searchButton.setBackground(warmBrown);
         searchButton.setForeground(Color.WHITE);
-        searchButton.setPreferredSize(new Dimension(100, 45));
+        searchButton.setMaximumSize(new Dimension(200, 45));
         searchButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        searchButton.setAlignmentX(Component.LEFT_ALIGNMENT);//center under genre
 
-        searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(searchButton, BorderLayout.EAST);
+//searching suggestion as dropdown menu
+        JPopupMenu suggestionMenu = new JPopupMenu();
+        suggestionMenu.setFocusable(false); //prevents the menu from stealing typing cursor
 
-        //content.add(searchPanel);
-        //content.add(Box.createVerticalStrut(30));
+        javax.swing.Timer typingTimer = new javax.swing.Timer(500, e -> {
+            String query = searchField.getText().trim();
+            if (query.length() >= 3) {
+
+                SwingWorker<JsonArray, Void> suggestionWorker = new SwingWorker<>() {
+                    @Override
+                    protected JsonArray doInBackground() {
+                        // Using the general search so it catches authors, titles, and genres
+                        return API.searchBooks(query + "&limit=5");
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            JsonArray results = get();
+                            suggestionMenu.removeAll();
+
+                            if (results.size() > 0) {
+                                for (int i = 0; i < results.size(); i++) {
+                                    JsonObject book = results.get(i).getAsJsonObject();
+
+                                    //get Title
+                                    String title = book.has("title") ? book.get("title").getAsString() : "";
+
+                                    //get Author
+                                    String author = "";
+                                    if (book.has("author_name")) {
+                                        author = book.get("author_name").getAsJsonArray().get(0).getAsString();
+                                    }
+
+                                    //get Genre (Subject)
+                                    String genre = "";
+                                    if (book.has("subject")) {
+                                        genre = book.getAsJsonArray("subject").get(0).getAsString();
+                                    }
+
+                                    if (!title.isEmpty()) {
+                                        //descriptive string for the user to understands the match
+                                        String displayText = title;
+                                        if (!author.isEmpty()) displayText += " by " + author;
+                                        if (!genre.isEmpty()) displayText += " [" + genre + "]";
+
+                                        //limt display
+                                        if (displayText.length() > 65) {
+                                            displayText = displayText.substring(0, 62) + "...";
+                                        }
+
+                                        JMenuItem item = new JMenuItem(displayText);
+                                        item.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                                        item.setBackground(Color.WHITE);
+                                        item.setForeground(new Color(80, 60, 50));
+
+                                        item.addActionListener(ev -> {
+                                            searchField.setText(title);
+                                            suggestionMenu.setVisible(false);
+                                            searchButton.doClick();
+                                        });
+                                        suggestionMenu.add(item);
+                                    }
+                                }
+                                suggestionMenu.show(searchField, 0, searchField.getHeight());
+                                searchField.requestFocus();
+                            } else {
+                                suggestionMenu.setVisible(false);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                };
+                suggestionWorker.execute();
+            } else {
+                suggestionMenu.setVisible(false);
+            }
+        });
+        typingTimer.setRepeats(false);
+
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { typingTimer.restart(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { typingTimer.restart(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { typingTimer.restart(); }
+        });
+
 
         JLabel categoriesLabel = new JLabel("Browse Categories");
         categoriesLabel.setFont(new Font("Georgia", Font.BOLD, 22));
@@ -400,7 +479,7 @@ public class LoginWindow extends JFrame {
                 "Fantasy", "Biography", "History", "Non-Fiction"
         };
 
-        JPanel allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
+        allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
         allBooksGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         for (String cat : categories) {
@@ -460,28 +539,29 @@ public class LoginWindow extends JFrame {
                 } else {
                     query = cat;
                 }
-
                 //put query into search field (optional but nice)
                 searchField.setText(query);
 
                 //trigger existing search logic
                 searchButton.doClick();
             });
-
-
-
             categoryPills.add(pill);
         }
 
-        //adding the categories
+        //browse categories
         content.add(categoriesLabel);
         content.add(Box.createVerticalStrut(15));
+        //genre pills
         content.add(categoryPills);
+        content.add(Box.createVerticalStrut(20));
+        //search bar
+        content.add(searchField);
         content.add(Box.createVerticalStrut(25));
-
-        //adding the search bar
-        content.add(searchPanel);
+        //search button
+        content.add(searchButton);
         content.add(Box.createVerticalStrut(30));
+
+
 
         //currently borrowed
         JPanel borrowedHeader = new JPanel(new BorderLayout());
@@ -612,7 +692,6 @@ public class LoginWindow extends JFrame {
                             loadMoreBtn.setText("Load More Books");
                             allBooksGrid.removeAll(); // clear UI FIRST
 
-                            // 🔥 STEP 1: store books
                             for (int i = 0; i < Math.min(results.size(), 20); i++) {
                                 JsonObject book = results.get(i).getAsJsonObject();
 
@@ -629,7 +708,6 @@ public class LoginWindow extends JFrame {
                                     coverUrl = "https://covers.openlibrary.org/b/id/" + coverId + "-L.jpg";
                                 }
 
-                                // 🔥 THIS is where subject/category comes from
                                 String category = "Unknown";
                                 if (book.has("subject")) {
                                     JsonArray subjects = book.getAsJsonArray("subject");
@@ -661,7 +739,6 @@ public class LoginWindow extends JFrame {
 
         searchField.addActionListener(performSearch);
         searchButton.addActionListener(performSearch);
-        // --------------------------------------
 
         JScrollPane scrollPane = new JScrollPane(content);
         scrollPane.setBorder(null);
@@ -719,11 +796,11 @@ public class LoginWindow extends JFrame {
             books = new String[][]{
                     {"The Silent Patient", "Alex Michaelides", "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg", "Available", "", "Mystery"},
                     {"Project Hail Mary", "Andy Weir", "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg", "Available", "", "Sci-Fi"},
-                    {"Educated", "Tara Westover", "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", "Checked Out", "", "Biography"},
+                    {"Educated", "Tara Westover", "https://covers.openlibrary.org/b/isbn/9780399590504-L.jpg", "Available", "", "Biography"},
                     {"The Song of Achilles", "Madeline Miller", "https://covers.openlibrary.org/b/isbn/9780062060624-L.jpg", "Available", "", "Fantasy"},
                     {"Dune", "Frank Herbert", "https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg", "Available", "", "Sci-Fi"},
                     {"Becoming", "Michelle Obama", "https://covers.openlibrary.org/b/isbn/9781524763138-L.jpg", "Available", "", "Biography"},
-                    {"Where the Crawdads Sing", "Delia Owens", "https://covers.openlibrary.org/b/isbn/9780735219090-L.jpg", "Checked Out", "", "Romance"},
+                    {"Where the Crawdads Sing", "Delia Owens", "https://covers.openlibrary.org/b/isbn/9780735219090-L.jpg", "Available", "", "Romance"},
                     {"Atomic Habits", "James Clear", "https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg", "Available", "", "Non-Fiction"}
             };
         }
@@ -751,22 +828,45 @@ public class LoginWindow extends JFrame {
         JPanel coverPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         coverPanel.setBackground(Color.WHITE);
 
-        try {
-            BufferedImage img = ImageIO.read(new URL(coverUrl));
-            Image scaled = img.getScaledInstance(140, 180, Image.SCALE_SMOOTH);
-            JLabel cover = new JLabel(new ImageIcon(scaled));
-            coverPanel.add(cover);
-        } catch (Exception e) {
-            JPanel placeholder = new JPanel();
-            placeholder.setPreferredSize(new Dimension(140, 180));
-            placeholder.setBackground(sand);
+        // 1. Instantly show a placeholder so the UI doesn't freeze
+        JPanel placeholder = new JPanel(new BorderLayout());
+        placeholder.setPreferredSize(new Dimension(140, 180));
+        placeholder.setBackground(sand);
 
-            JLabel noCoverLabel = new JLabel("📚");
-            noCoverLabel.setFont(new Font("Segoe UI", Font.PLAIN, 40));
-            noCoverLabel.setForeground(sage);
-            placeholder.add(noCoverLabel);
+        JLabel coverLabel = new JLabel("Loading...", SwingConstants.CENTER);
+        coverLabel.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+        coverLabel.setForeground(sage);
+        placeholder.add(coverLabel, BorderLayout.CENTER);
 
-            coverPanel.add(placeholder);
+        coverPanel.add(placeholder);
+
+        // 2. Fetch the actual image in the background
+        if (coverUrl != null && !coverUrl.isEmpty()) {
+            SwingWorker<ImageIcon, Void> imageWorker = new SwingWorker<>() {
+                @Override
+                protected ImageIcon doInBackground() throws Exception {
+                    // This happens in the background, freeing up your UI!
+                    BufferedImage img = ImageIO.read(new URL(coverUrl));
+                    Image scaled = img.getScaledInstance(140, 180, Image.SCALE_SMOOTH);
+                    return new ImageIcon(scaled);
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        ImageIcon icon = get();
+                        // Once downloaded, swap the text for the image
+                        coverLabel.setText("");
+                        coverLabel.setIcon(icon);
+                    } catch (Exception e) {
+                        coverLabel.setText("No Cover");
+                        coverLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+                    }
+                }
+            };
+            imageWorker.execute();
+        } else {
+            coverLabel.setText("No Cover");
         }
 
         card.add(coverPanel, BorderLayout.NORTH);
@@ -897,8 +997,72 @@ public class LoginWindow extends JFrame {
                 ));
             }
         });
+        //return button logic
+        if (status.contains("Due")) {
+            infoPanel.add(Box.createVerticalStrut(10));
+
+            JButton returnBtn = new JButton("Return Book");
+            returnBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            returnBtn.setBackground(terracotta);
+            returnBtn.setForeground(Color.WHITE);
+            returnBtn.setBorderPainted(false);
+            returnBtn.setFocusPainted(false);
+            returnBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            returnBtn.addActionListener(e -> {
+                JOptionPane.showMessageDialog(null, "Returned: " + title);
+
+                // Remove from borrowed
+                borrowedBooks.removeIf(b ->
+                        b[0].equals(title) && b[1].equals(author)
+                );
+
+                // Update status
+                for (String[] b : allBooks) {
+                    if (b[0].equals(title) && b[1].equals(author)) {
+                        b[3] = "Available";
+                        break;
+                    }
+                }
+
+                refreshBorrowedBooks();
+                updateBorrowedCount();
+
+                SwingUtilities.invokeLater(() -> {
+                    refreshAllBooksGrid();
+                });
+            });
+
+            infoPanel.add(returnBtn);
+        }
 
         return card;
+    }
+    private void refreshAllBooksGrid() {
+        allBooksGrid.removeAll();
+
+
+        if (allBooks.isEmpty()) {
+            allBooksGrid.add(new JLabel("No books available"));
+        } else {
+            renderBooks(
+                    allBooksGrid,
+                    new Color(156,165,118),
+                    new Color(140,100,85),
+                    new Color(80,60,50),
+                    new Color(220,210,190),
+                    new Color(110,120,90),
+                    new Color(190,120,90)
+            );
+        }
+
+        // 🔥 FORCE FULL UI REFRESH
+        allBooksGrid.revalidate();
+        allBooksGrid.repaint();
+
+        // 🔥 VERY IMPORTANT (fixes disappearing issue)
+        allBooksGrid.getParent().revalidate();
+        allBooksGrid.getParent().repaint();
     }
 
     private void refreshBorrowedBooks() {
