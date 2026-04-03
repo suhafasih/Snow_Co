@@ -59,6 +59,195 @@ public class LoginWindow extends JFrame {
 
         setupMenuBar();
     }
+//    /-------------------------------------------------------------------------- to show details + price too
+    private void showBookDetailDialog(String title, String author, String coverUrl, String category) {
+        Color cream     = new Color(245, 240, 230);
+        Color sage      = new Color(156, 165, 118);
+        Color warmBrown = new Color(140, 100, 85);
+        Color darkBrown = new Color(80, 60, 50);
+        Color sand      = new Color(220, 210, 190);
+        Color moss      = new Color(110, 120, 90);
+
+        JDialog dialog = new JDialog(this, "Book Details", true);
+        dialog.setSize(680, 600);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        dialog.getContentPane().setBackground(cream);
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(sage);
+        header.setBorder(BorderFactory.createEmptyBorder(18, 24, 18, 24));
+        JLabel headerTitle = new JLabel("Book Details");
+        headerTitle.setFont(new Font("Georgia", Font.BOLD, 22));
+        headerTitle.setForeground(Color.WHITE);
+        JButton closeBtn = new RoundedButton(" X Close");
+        closeBtn.setBackground(warmBrown);
+        closeBtn.setForeground(Color.WHITE);
+        closeBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        closeBtn.setPreferredSize(new Dimension(90, 32));
+        closeBtn.addActionListener(e -> dialog.dispose());
+        header.add(headerTitle, BorderLayout.WEST);
+        header.add(closeBtn, BorderLayout.EAST);
+        dialog.add(header, BorderLayout.NORTH);
+
+        JPanel content = new JPanel(new BorderLayout(20, 0));
+        content.setBackground(cream);
+        content.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+
+        JPanel coverPanel = new JPanel(new BorderLayout());
+        coverPanel.setBackground(cream);
+        coverPanel.setPreferredSize(new Dimension(165, 230));
+        JLabel coverLabel = new JLabel("Loading...", SwingConstants.CENTER);
+        coverLabel.setPreferredSize(new Dimension(150, 200));
+        coverLabel.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+        coverLabel.setForeground(sage);
+        coverLabel.setOpaque(true);
+        coverLabel.setBackground(sand);
+        coverLabel.setBorder(BorderFactory.createLineBorder(sand, 2));
+        coverPanel.add(coverLabel, BorderLayout.CENTER);
+        if (coverUrl != null && !coverUrl.isEmpty()) {
+            new SwingWorker<ImageIcon, Void>() {
+                protected ImageIcon doInBackground() throws Exception {
+                    BufferedImage img = ImageIO.read(new URL(coverUrl));
+                    return new ImageIcon(img.getScaledInstance(150, 200, Image.SCALE_SMOOTH));
+                }
+                protected void done() {
+                    try { coverLabel.setText(""); coverLabel.setIcon(get()); }
+                    catch (Exception ex) { coverLabel.setText("No Cover"); }
+                }
+            }.execute();
+        } else {
+            coverLabel.setText("No Cover");
+        }
+        content.add(coverPanel, BorderLayout.WEST);
+
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(cream);
+
+        JLabel titleLabel = new JLabel("<html><div style='width:320px'><b>" + title + "</b></div></html>");
+        titleLabel.setFont(new Font("Georgia", Font.BOLD, 20));
+        titleLabel.setForeground(darkBrown);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel authorLabel = new JLabel("by " + author);
+        authorLabel.setFont(new Font("Georgia", Font.ITALIC, 15));
+        authorLabel.setForeground(warmBrown);
+        authorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JPanel catBadge = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        catBadge.setBackground(cream);
+        catBadge.setAlignmentX(Component.LEFT_ALIGNMENT);
+        String catText = (category != null && !category.trim().isEmpty()) ? category : "General";
+        JLabel catLabel = new JLabel("  " + catText + "  ");
+        catLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        catLabel.setForeground(moss);
+        catLabel.setBackground(new Color(230, 240, 220));
+        catLabel.setOpaque(true);
+        catLabel.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        catBadge.add(catLabel);
+
+        JLabel summaryHeader = new JLabel("Summary");
+        summaryHeader.setFont(new Font("Georgia", Font.BOLD, 14));
+        summaryHeader.setForeground(darkBrown);
+        summaryHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextArea summaryArea = new JTextArea("Fetching summary...");
+        summaryArea.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        summaryArea.setForeground(darkBrown);
+        summaryArea.setBackground(cream);
+        summaryArea.setLineWrap(true);
+        summaryArea.setWrapStyleWord(true);
+        summaryArea.setEditable(false);
+        JScrollPane summaryScroll = new JScrollPane(summaryArea);
+        summaryScroll.setBorder(BorderFactory.createLineBorder(sand, 1));
+        summaryScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        summaryScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
+        summaryScroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 130));
+
+        JLabel priceHeader = new JLabel("Estimated Price");
+        priceHeader.setFont(new Font("Georgia", Font.BOLD, 14));
+        priceHeader.setForeground(darkBrown);
+        priceHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel priceLabel = new JLabel("Fetching price...");
+        priceLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        priceLabel.setForeground(moss);
+        priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        new SwingWorker<String[], Void>() {
+            protected String[] doInBackground() {
+                String summary = "No summary available for this book.";
+                String price   = "Not available";
+                try {
+                    String encoded = java.net.URLEncoder.encode(title + " " + author, "UTF-8");
+                    URL searchUrl = new URL("https://openlibrary.org/search.json?q=" + encoded + "&limit=1");
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) searchUrl.openConnection();
+                    conn.setRequestProperty("User-Agent", "LibraryCatalogueApp/1.0");
+                    conn.setConnectTimeout(7000); conn.setReadTimeout(7000);
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                    reader.close();
+
+                    JsonObject searchResult = JsonParser.parseString(sb.toString()).getAsJsonObject();
+                    JsonArray docs = searchResult.getAsJsonArray("docs");
+                    if (docs != null && docs.size() > 0) {
+                        JsonObject doc = docs.get(0).getAsJsonObject();
+                        if (doc.has("key")) {
+                            String workKey = doc.get("key").getAsString();
+                            URL workUrl = new URL("https://openlibrary.org" + workKey + ".json");
+                            java.net.HttpURLConnection wconn = (java.net.HttpURLConnection) workUrl.openConnection();
+                            wconn.setRequestProperty("User-Agent", "LibraryCatalogueApp/1.0");
+                            wconn.setConnectTimeout(7000); wconn.setReadTimeout(7000);
+                            java.io.BufferedReader wreader = new java.io.BufferedReader(new java.io.InputStreamReader(wconn.getInputStream()));
+                            StringBuilder wsb = new StringBuilder();
+                            while ((line = wreader.readLine()) != null) wsb.append(line);
+                            wreader.close();
+                            JsonObject work = JsonParser.parseString(wsb.toString()).getAsJsonObject();
+                            if (work.has("description")) {
+                                JsonElement desc = work.get("description");
+                                if (desc.isJsonObject() && desc.getAsJsonObject().has("value"))
+                                    summary = desc.getAsJsonObject().get("value").getAsString();
+                                else if (desc.isJsonPrimitive())
+                                    summary = desc.getAsString();
+                                if (summary.length() > 1000) summary = summary.substring(0, 999) + "...";
+                            }
+                        }
+                        int editions = doc.has("edition_count") ? doc.get("edition_count").getAsInt() : 1;
+                        double newPrice  = 24.99;
+                        double usedPrice = Math.max(3.99, newPrice - (editions * 0.35));
+                        price = String.format("New: $%.2f    |    Used from: $%.2f", newPrice, usedPrice);
+                    }
+                } catch (Exception ex) { ex.printStackTrace(); }
+                return new String[]{summary, price};
+            }
+            protected void done() {
+                try {
+                    String[] result = get();
+                    summaryArea.setText(result[0]); summaryArea.setCaretPosition(0);
+                    priceLabel.setText(result[1]);
+                } catch (Exception ex) {
+                    summaryArea.setText("Could not load summary.");
+                    priceLabel.setText("Price unavailable");
+                }
+            }
+        }.execute();
+
+        infoPanel.add(titleLabel);        infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(authorLabel);       infoPanel.add(Box.createVerticalStrut(10));
+        infoPanel.add(catBadge);          infoPanel.add(Box.createVerticalStrut(18));
+        infoPanel.add(summaryHeader);     infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(summaryScroll);     infoPanel.add(Box.createVerticalStrut(18));
+        infoPanel.add(priceHeader);       infoPanel.add(Box.createVerticalStrut(6));
+        infoPanel.add(priceLabel);
+
+        content.add(infoPanel, BorderLayout.CENTER);
+        dialog.add(content, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
 
     private void createLoginPanel() {
 
@@ -762,7 +951,7 @@ public class LoginWindow extends JFrame {
                     book[1], // author
                     book[2], // cover
                     "Due in 7 days",
-                    "normal",
+                    "normal", "",
                     new Color(156,165,118),
                     new Color(140,100,85),
                     new Color(80,60,50),
@@ -800,14 +989,14 @@ public class LoginWindow extends JFrame {
         }
 
         for (String[] book : books) {
-            grid.add(createEarthyBookCard(book[0], book[1], book[2], book[3], book.length > 4 ? book[4] : "",
+            grid.add(createEarthyBookCard(book[0], book[1], book[2], book[3], book.length > 4 ? book[4] : "", book.length > 5 ? book[5] : "",
                     sage, warmBrown, darkBrown, sand, moss, terracotta));
         }
 
         return grid;
     }
 
-    private JPanel createEarthyBookCard(String title, String author, String coverUrl, String status, String urgency,
+    private JPanel createEarthyBookCard(String title, String author, String coverUrl, String status, String urgency, String category,
                                         Color sage, Color warmBrown, Color darkBrown, Color sand, Color moss, Color terracotta) {
         JPanel card = new JPanel();
         card.setLayout(new BorderLayout());
@@ -983,12 +1172,17 @@ public class LoginWindow extends JFrame {
                         BorderFactory.createLineBorder(sage, 2),
                         BorderFactory.createEmptyBorder(14, 14, 14, 14)
                 ));
+                card.setCursor(new Cursor(Cursor.HAND_CURSOR));
             }
             public void mouseExited(MouseEvent e) {
                 card.setBorder(BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(sand, 1),
                         BorderFactory.createEmptyBorder(15, 15, 15, 15)
                 ));
+                card.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+            public void mouseClicked(MouseEvent e) {
+                showBookDetailDialog(title, author, coverUrl, category);
             }
         });
         //return button logic
@@ -1068,7 +1262,7 @@ public class LoginWindow extends JFrame {
                     book[1],
                     book[2],
                     "Due in 7 days",
-                    "normal",
+                    "normal","",
                     new Color(156,165,118),
                     new Color(140,100,85),
                     new Color(80,60,50),
@@ -1096,7 +1290,7 @@ public class LoginWindow extends JFrame {
                     b[1],
                     b[2],
                     b[3],
-                    "",
+                    "", b.length > 4 ? b[4] : "",
                     sage, warmBrown, darkBrown, sand, moss, terracotta
             ));
         }
