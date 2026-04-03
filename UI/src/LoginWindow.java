@@ -1,5 +1,3 @@
-//javac -cp ".;../lib/gson-2.10.1.jar" *.java
-//java -cp ".;../lib/gson-2.10.1.jar" LoginWindow
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -140,16 +138,12 @@ public class LoginWindow extends JFrame {
         loginButton.setFont(new Font("Garamond", Font.BOLD, 20));
 
         // Status label
-        statusLabel = new JLabel("Status: Not logged in");
-        statusLabel.setForeground(Color.WHITE);
-        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
+
 
         overlay.add(formPanel);
         overlay.add(Box.createVerticalStrut(20));
         overlay.add(loginButton);
         overlay.add(Box.createVerticalStrut(15));
-        overlay.add(statusLabel);
 
         overlay.add(Box.createVerticalGlue(), 0);
         overlay.add(Box.createVerticalGlue());
@@ -376,7 +370,7 @@ public class LoginWindow extends JFrame {
         searchButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         searchButton.setAlignmentX(Component.LEFT_ALIGNMENT);//center under genre
 
-//searching suggestion as dropdown menu
+        //searching suggestion as dropdown menu
         JPopupMenu suggestionMenu = new JPopupMenu();
         suggestionMenu.setFocusable(false); //prevents the menu from stealing typing cursor
 
