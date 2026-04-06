@@ -327,14 +327,19 @@ public class LoginWindow extends JFrame {
         loginButton.setFont(new Font("Garamond", Font.BOLD, 20));
 
         // Status label
+        overlay.add(loginButton);
+        overlay.add(Box.createVerticalStrut(15));
 
-
+        statusLabel = new JLabel("Status: Not logged in");
+        statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
+        statusLabel.setForeground(Color.WHITE);
+        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
         overlay.add(formPanel);
         overlay.add(Box.createVerticalStrut(20));
         overlay.add(loginButton);
         overlay.add(Box.createVerticalStrut(15));
-
-        overlay.add(Box.createVerticalGlue(), 0);
+        overlay.add(statusLabel);
         overlay.add(Box.createVerticalGlue());
 
         loginPanel.add(overlay);
