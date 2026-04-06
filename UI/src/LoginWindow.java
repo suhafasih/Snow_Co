@@ -1928,6 +1928,14 @@ public class LoginWindow extends JFrame {
             JTextField titleField = new JTextField();
             JTextField authorField = new JTextField();
             JTextField yearField = new JTextField();
+            JTextField priceField = new JTextField("12.99");
+
+            JComboBox<String> formatCombo = new JComboBox<>();
+            formatCombo.addItem("Paper");
+            formatCombo.addItem("Hardcover");
+            formatCombo.addItem("E-Book");
+            formatCombo.addItem("Audiobook");
+
             JComboBox<String> categoryCombo = new JComboBox<>();
             categoryCombo.addItem("Fiction");
             categoryCombo.addItem("Non-Fiction");
@@ -1938,10 +1946,20 @@ public class LoginWindow extends JFrame {
             categoryCombo.addItem("Biography");
             categoryCombo.addItem("History");
 
+            formatCombo.addActionListener(event ->{
+                String selected = (String) formatCombo.getSelectedItem();
+                if (selected.equals("Hardcover")) priceField.setText("24.99");
+                else if (selected.equals("Paper")) priceField.setText("12.99");
+                else if (selected.equals("E-Book")) priceField.setText("9.99");
+                else if (selected.equals("Audiobook")) priceField.setText("19.99");
+            });
+
             Object[] formElements = {
                     "Book Title:", titleField,
                     "Author:", authorField,
                     "Publish Year:", yearField,
+                    "Format: ", formatCombo,
+                    "Price ($): ", priceField,
                     "Category:", categoryCombo
             };
 
@@ -1953,7 +1971,9 @@ public class LoginWindow extends JFrame {
                         titleField.getText().trim(),
                         authorField.getText().trim(),
                         yearField.getText().trim(),
-                        "N/A",
+                        formatCombo.getSelectedItem(),
+                        priceField.getText().trim(),
+//                        "N/A",
                         (String) categoryCombo.getSelectedItem()
                 };
                 allBooksList.add(newBook);
