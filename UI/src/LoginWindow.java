@@ -330,11 +330,11 @@ public class LoginWindow extends JFrame {
         overlay.add(loginButton);
         overlay.add(Box.createVerticalStrut(15));
 
-        statusLabel = new JLabel("Status: Not logged in");
+        statusLabel = new JLabel("");
         statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         overlay.add(formPanel);
         overlay.add(Box.createVerticalStrut(20));
         overlay.add(loginButton);
@@ -508,6 +508,7 @@ public class LoginWindow extends JFrame {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
         }
     }
+
 
     private void createUserDashboard() {
         userDashboard = new JPanel(new BorderLayout());
@@ -1249,13 +1250,85 @@ public class LoginWindow extends JFrame {
             );
         }
 
-        // 🔥 FORCE FULL UI REFRESH
         allBooksGrid.revalidate();
         allBooksGrid.repaint();
 
-        // 🔥 VERY IMPORTANT (fixes disappearing issue)
         allBooksGrid.getParent().revalidate();
         allBooksGrid.getParent().repaint();
+    }
+
+    private void loadAllBooksFromAPI() {
+        // Show loading indicator
+        JOptionPane.showMessageDialog(this,
+                "Loading books from library database...",
+                "Loading",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        SwingWorker<JsonArray, Void> worker = new SwingWorker<>() {
+            @Override
+            protected JsonArray doInBackground() {
+                return API.searchBooks("popular fiction"); // Search for popular books
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    JsonArray results = get();
+
+                    // Get the table model
+                    DefaultTableModel model = (DefaultTableModel) booksTable.getModel();
+                    model.setRowCount(0); // Clear existing rows
+
+                    if (results != null && results.size() > 0) {
+                        for (int i = 0; i < Math.min(results.size(), 50); i++) {
+                            JsonObject book = results.get(i).getAsJsonObject();
+
+                            String title = book.has("title")
+                                    ? book.get("title").getAsString()
+                                    : "Unknown Title";
+
+                            String author = "Unknown Author";
+                            if (book.has("author_name")) {
+                                JsonArray authors = book.get("author_name").getAsJsonArray();
+                                if (authors.size() > 0) {
+                                    author = authors.get(0).getAsString();
+                                }
+                            }
+
+                            String year = book.has("first_publish_year")
+                                    ? String.valueOf(book.get("first_publish_year").getAsInt())
+                                    : "N/A";
+
+                            String editionCount = book.has("edition_count")
+                                    ? String.valueOf(book.get("edition_count").getAsInt())
+                                    : "N/A";
+
+                            // Add row to table
+                            model.addRow(new Object[]{title, author, year, editionCount});
+                        }
+
+                        JOptionPane.showMessageDialog(null,
+                                "Successfully loaded " + model.getRowCount() + " books!",
+                                "Success",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(null,
+                                "No books found. Please check your internet connection.",
+                                "Warning",
+                                JOptionPane.WARNING_MESSAGE);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null,
+                            "Error loading books: " + e.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
     }
 
     private void refreshBorrowedBooks() {
@@ -1412,12 +1485,252 @@ public class LoginWindow extends JFrame {
 
 
     //Admin panel Components
+//    private JPanel createBooksManagementPanel() {
+//
+//        String[] columns = {"Title","Author","First Publish Year","Edition Count"};
+//
+//        DefaultTableModel model = new DefaultTableModel(columns,0);
+//        this.booksTable = new JTable(model);
+//
+//        Color background = new Color(250,245,235);
+//        Color darkBrown = new Color(80, 60, 50);
+//
+//        JPanel panel = new RoundedPanel(10);
+//        panel.setLayout(new BorderLayout(10,10));
+//        panel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+//        panel.setBackground(background);
+//        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,500));
+//
+//
+//        // toolbar
+//        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 5));
+//        toolBar.setBackground(background);
+//
+//        JButton addBtn = new RoundedButton("Add Book");
+//        JButton editBtn = new RoundedButton("Edit Book");
+//        JButton deleteBtn = new RoundedButton("Delete Book");
+//
+//        Font btnFont = new Font("Segoe UI", Font.BOLD, 13);
+//
+//        addBtn.setFont(btnFont);
+//        editBtn.setFont(btnFont);
+//        deleteBtn.setFont(btnFont);
+//
+//        addBtn.setPreferredSize(new Dimension(120,35));
+//        editBtn.setPreferredSize(new Dimension(120,35));
+//        deleteBtn.setPreferredSize(new Dimension(120,35));
+//
+//        toolBar.add(addBtn);
+//        toolBar.add(editBtn);
+//        toolBar.add(deleteBtn);
+//
+//        //ADD BOOK LOGIC
+//        addBtn.addActionListener(e ->{
+//            JTextField titleField = new JTextField();
+//            JTextField authorField = new JTextField();
+//            JTextField yearField = new JTextField();
+//            JTextField isbnField = new JTextField();
+//
+//            Object[]  formElements = {
+//                    "Book Title: ", titleField,
+//                    "Author: ", authorField,
+//                    "Publish Year: ", yearField,
+//                    "ISBN: ", isbnField
+//            };
+//
+//            int result = JOptionPane.showConfirmDialog(null, formElements, "Add new book to local Library", JOptionPane.OK_CANCEL_OPTION);
+//
+//            if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()){
+//                DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
+//
+//                int newRowIndex = currentData.getRowCount();
+//                currentData.setRowCount(newRowIndex + 1);
+//
+//                currentData.setValueAt(titleField.getText().trim(), newRowIndex, 0);
+//                currentData.setValueAt(authorField.getText().trim(), newRowIndex, 1);
+//                currentData.setValueAt(yearField.getText().trim(), newRowIndex, 2);
+//                currentData.setValueAt(isbnField.getText().trim(), newRowIndex, 3);
+//
+//                booksTable.revalidate();
+//                booksTable.repaint();
+//            }
+//        });
+//        //edit button logic
+//        editBtn.addActionListener(e -> {
+//            int selectedRow = booksTable.getSelectedRow();
+//
+//            if (selectedRow == -1) {
+//                JOptionPane.showMessageDialog(null, "Please select a book to edit.");
+//                return;
+//            }
+//
+//            String currentTitle = (String) model.getValueAt(selectedRow, 0);
+//            String currentAuthor = (String) model.getValueAt(selectedRow, 1);
+//            String currentYear = (String) model.getValueAt(selectedRow, 2);
+//            String currentISBN = (String) model.getValueAt(selectedRow, 3);
+//
+//            JTextField titleField = new JTextField(currentTitle);
+//            JTextField authorField = new JTextField(currentAuthor);
+//            JTextField yearField = new JTextField(currentYear);
+//            JTextField isbnField = new JTextField(currentISBN);
+//
+//            Object[] form = {
+//                    "Title:", titleField,
+//                    "Author:", authorField,
+//                    "Year:", yearField,
+//                    "ISBN:", isbnField
+//            };
+//
+//            int result = JOptionPane.showConfirmDialog(null, form, "Edit Book", JOptionPane.OK_CANCEL_OPTION);
+//
+//            if (result == JOptionPane.OK_OPTION) {
+//                model.setValueAt(titleField.getText(), selectedRow, 0);
+//                model.setValueAt(authorField.getText(), selectedRow, 1);
+//                model.setValueAt(yearField.getText(), selectedRow, 2);
+//                model.setValueAt(isbnField.getText(), selectedRow, 3);
+//            }
+//            });
+//
+//        //delete button logic
+//        deleteBtn.addActionListener(e -> {
+//            int selectedRow = booksTable.getSelectedRow();
+//
+//            if (selectedRow == -1) {
+//                JOptionPane.showMessageDialog(null, "Please select a book to delete.");
+//                return;
+//            }
+//
+//            int confirm = JOptionPane.showConfirmDialog(
+//                    null,
+//                    "Are you sure you want to delete this book?",
+//                    "Confirm Delete",
+//                    JOptionPane.YES_NO_OPTION
+//            );
+//
+//            if (confirm == JOptionPane.YES_OPTION) {
+//                model.removeRow(selectedRow);
+//            }
+//        });
+//
+//
+//        panel.add(toolBar, BorderLayout.NORTH);
+//
+//
+//
+//        booksTable.setRowHeight(32);
+//
+//        booksTable.setFont(new Font("Segoe UI", Font.PLAIN,14));
+//
+//        booksTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD,14));
+//        booksTable.getTableHeader().setBackground(new Color(140,100,85));
+//        booksTable.getTableHeader().setForeground(darkBrown);
+//
+//        booksTable.setShowVerticalLines(false);
+//        booksTable.setGridColor(new Color(230,220,210));
+//
+//        booksTable.setSelectionBackground(new Color(156,165,118));
+//        booksTable.setSelectionForeground(Color.WHITE);
+//
+//        JScrollPane scrollPane = new JScrollPane(booksTable);
+//        scrollPane.setBorder(null);
+//        scrollPane.getViewport().setOpaque(false);
+//        scrollPane.setOpaque(false);
+//
+//        //search
+//        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT,10,10));
+//        searchPanel.setBackground(background);
+//
+//        JLabel searchLabel = new JLabel("Search Books:");
+//        searchLabel.setFont(new Font("Georgia", Font.BOLD, 14));
+//
+//        JTextField searchField = new RoundedTextField(20);
+//        searchField.setPreferredSize(new Dimension(200,35));
+//
+//        JButton searchBtn = new RoundedButton("Search");
+//        searchBtn.setPreferredSize(new Dimension(100,35));
+//
+//        //API search
+//        searchBtn.addActionListener(e -> {
+//            String query = searchField.getText().trim();
+//
+//            if (!query.isEmpty()) {
+//                searchBtn.setText("Loading...");
+//                searchBtn.setEnabled(false);
+//
+//                model.setRowCount(0); // clear table
+//
+//                SwingWorker<JsonArray, Void> worker = new SwingWorker<>() {
+//
+//                    @Override
+//                    protected JsonArray doInBackground() {
+//                        return API.searchBooks(query);
+//                    }
+//
+//                    @Override
+//                    protected void done() {
+//                        try {
+//                            JsonArray results = get();
+//
+//                            for (int i = 0; i < Math.min(results.size(), 15); i++) {
+//                                JsonObject book = results.get(i).getAsJsonObject();
+//
+//                                String title = book.has("title")
+//                                        ? book.get("title").getAsString()
+//                                        : "Unknown";
+//
+//                                String author = "Unknown";
+//                                if (book.has("author_name")) {
+//                                    author = book.get("author_name")
+//                                            .getAsJsonArray().get(0).getAsString();
+//                                }
+//
+//                                String year = book.has("first_publish_year")
+//                                        ? book.get("first_publish_year").getAsString()
+//                                        : "N/A";
+//
+//                                String edition = book.has("edition_count")
+//                                        ? book.get("edition_count").getAsString()
+//                                        : "N/A";
+//
+//                                model.addRow(new Object[]{title, author, year, edition});
+//                            }
+//
+//                        } catch (Exception ex) {
+//                            ex.printStackTrace();
+//                        } finally {
+//                            searchBtn.setText("Search");
+//                            searchBtn.setEnabled(true);
+//                        }
+//                    }
+//                };
+//
+//                worker.execute();
+//            }
+//        });
+//
+//        searchPanel.add(searchLabel);
+//        searchPanel.add(searchField);
+//        searchPanel.add(searchBtn);
+//
+//        JPanel centerPanel = new RoundedTable(new BorderLayout(10,10));
+//        centerPanel.setBackground(background);
+//        centerPanel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));        centerPanel.setBackground(background);
+//
+//        centerPanel.add(searchPanel, BorderLayout.NORTH);
+//        centerPanel.add(scrollPane, BorderLayout.CENTER);
+//
+//        panel.add(centerPanel, BorderLayout.CENTER);
+//
+//        return panel;
+//    }
+
     private JPanel createBooksManagementPanel() {
-
-        String[] columns = {"Title","Author","First Publish Year","Edition Count"};
-
-        DefaultTableModel model = new DefaultTableModel(columns,0);
+        String[] columns = {"Title", "Author", "First Publish Year", "Edition Count", "Category"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0);
         this.booksTable = new JTable(model);
+
+        // Store all books for filtering
+        java.util.List<Object[]> allBooksList = new java.util.ArrayList<>();
 
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
@@ -1428,153 +1741,88 @@ public class LoginWindow extends JFrame {
         panel.setBackground(background);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE,500));
 
-
-        // toolbar
-        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 5));
-        toolBar.setBackground(background);
-
-        JButton addBtn = new RoundedButton("Add Book");
-        JButton editBtn = new RoundedButton("Edit Book");
-        JButton deleteBtn = new RoundedButton("Delete Book");
-
-        Font btnFont = new Font("Segoe UI", Font.BOLD, 13);
-
-        addBtn.setFont(btnFont);
-        editBtn.setFont(btnFont);
-        deleteBtn.setFont(btnFont);
-
-        addBtn.setPreferredSize(new Dimension(120,35));
-        editBtn.setPreferredSize(new Dimension(120,35));
-        deleteBtn.setPreferredSize(new Dimension(120,35));
-
-        toolBar.add(addBtn);
-        toolBar.add(editBtn);
-        toolBar.add(deleteBtn);
-
-        //ADD BOOK LOGIC
-        addBtn.addActionListener(e ->{
-            JTextField titleField = new JTextField();
-            JTextField authorField = new JTextField();
-            JTextField yearField = new JTextField();
-            JTextField isbnField = new JTextField();
-
-            Object[]  formElements = {
-                    "Book Title: ", titleField,
-                    "Author: ", authorField,
-                    "Publish Year: ", yearField,
-                    "ISBN: ", isbnField
-            };
-
-            int result = JOptionPane.showConfirmDialog(null, formElements, "Add new book to local Library", JOptionPane.OK_CANCEL_OPTION);
-
-            if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()){
-                DefaultTableModel currentData = (DefaultTableModel) booksTable.getModel();
-
-                int newRowIndex = currentData.getRowCount();
-                currentData.setRowCount(newRowIndex + 1);
-
-                currentData.setValueAt(titleField.getText().trim(), newRowIndex, 0);
-                currentData.setValueAt(authorField.getText().trim(), newRowIndex, 1);
-                currentData.setValueAt(yearField.getText().trim(), newRowIndex, 2);
-                currentData.setValueAt(isbnField.getText().trim(), newRowIndex, 3);
-
-                booksTable.revalidate();
-                booksTable.repaint();
-            }
-        });
-        //edit button logic
-        editBtn.addActionListener(e -> {
-            int selectedRow = booksTable.getSelectedRow();
-
-            if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(null, "Please select a book to edit.");
-                return;
-            }
-
-            String currentTitle = (String) model.getValueAt(selectedRow, 0);
-            String currentAuthor = (String) model.getValueAt(selectedRow, 1);
-            String currentYear = (String) model.getValueAt(selectedRow, 2);
-            String currentISBN = (String) model.getValueAt(selectedRow, 3);
-
-            JTextField titleField = new JTextField(currentTitle);
-            JTextField authorField = new JTextField(currentAuthor);
-            JTextField yearField = new JTextField(currentYear);
-            JTextField isbnField = new JTextField(currentISBN);
-
-            Object[] form = {
-                    "Title:", titleField,
-                    "Author:", authorField,
-                    "Year:", yearField,
-                    "ISBN:", isbnField
-            };
-
-            int result = JOptionPane.showConfirmDialog(null, form, "Edit Book", JOptionPane.OK_CANCEL_OPTION);
-
-            if (result == JOptionPane.OK_OPTION) {
-                model.setValueAt(titleField.getText(), selectedRow, 0);
-                model.setValueAt(authorField.getText(), selectedRow, 1);
-                model.setValueAt(yearField.getText(), selectedRow, 2);
-                model.setValueAt(isbnField.getText(), selectedRow, 3);
-            }
-            });
-
-        //delete button logic
-        deleteBtn.addActionListener(e -> {
-            int selectedRow = booksTable.getSelectedRow();
-
-            if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(null, "Please select a book to delete.");
-                return;
-            }
-
-            int confirm = JOptionPane.showConfirmDialog(
-                    null,
-                    "Are you sure you want to delete this book?",
-                    "Confirm Delete",
-                    JOptionPane.YES_NO_OPTION
-            );
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                model.removeRow(selectedRow);
-            }
-        });
-
-
-        panel.add(toolBar, BorderLayout.NORTH);
-
-
-
-        booksTable.setRowHeight(32);
-
-        booksTable.setFont(new Font("Segoe UI", Font.PLAIN,14));
-
-        booksTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD,14));
-        booksTable.getTableHeader().setBackground(new Color(140,100,85));
-        booksTable.getTableHeader().setForeground(darkBrown);
-
-        booksTable.setShowVerticalLines(false);
-        booksTable.setGridColor(new Color(230,220,210));
-
-        booksTable.setSelectionBackground(new Color(156,165,118));
-        booksTable.setSelectionForeground(Color.WHITE);
-
-        JScrollPane scrollPane = new JScrollPane(booksTable);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setOpaque(false);
-        scrollPane.setOpaque(false);
-
-        //search
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT,10,10));
+        // Create enhanced search panel with filters
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         searchPanel.setBackground(background);
 
-        JLabel searchLabel = new JLabel("Search Books:");
+        // Search field
+        JLabel searchLabel = new JLabel("Search:");
         searchLabel.setFont(new Font("Georgia", Font.BOLD, 14));
+        JTextField searchField = new RoundedTextField(15);
+        searchField.setPreferredSize(new Dimension(150, 35));
 
-        JTextField searchField = new RoundedTextField(20);
-        searchField.setPreferredSize(new Dimension(200,35));
+        // Category filter dropdown
+//        JLabel categoryLabel = new JLabel("Category:");
+//        categoryLabel.setFont(new Font("Georgia", Font.BOLD, 14));
+//        JComboBox<String> categoryFilter = new JComboBox<>();
+//        categoryFilter.addItem("All Categories");
+//        categoryFilter.addItem("Fiction");
+//        categoryFilter.addItem("Mystery");
+//        categoryFilter.addItem("Sci-Fi");
+//        categoryFilter.addItem("Romance");
+//        categoryFilter.addItem("Fantasy");
+//        categoryFilter.addItem("Biography");
+//        categoryFilter.addItem("History");
+//        categoryFilter.addItem("Non-Fiction");
+//        categoryFilter.addItem("Classic");
+//        categoryFilter.addItem("Thriller");
+//        categoryFilter.setPreferredSize(new Dimension(140, 35));
+//        categoryFilter.setBackground(Color.WHITE);
 
+
+        // Buttons
         JButton searchBtn = new RoundedButton("Search");
-        searchBtn.setPreferredSize(new Dimension(100,35));
+        searchBtn.setPreferredSize(new Dimension(100, 35));
+        JButton refreshBtn = new RoundedButton("Refresh");
+        refreshBtn.setPreferredSize(new Dimension(100, 35));
+        JButton clearFiltersBtn = new RoundedButton("Clear Filters");
+        clearFiltersBtn.setPreferredSize(new Dimension(120, 35));
+
+        // Add components to search panel
+        searchPanel.add(searchLabel);
+        searchPanel.add(searchField);
+        searchPanel.add(searchBtn);
+//        searchPanel.add(categoryLabel);
+//        searchPanel.add(categoryFilter);
+//        searchPanel.add(refreshBtn);
+//        searchPanel.add(clearFiltersBtn);
+
+        // Filter method
+        java.util.function.Consumer<String[]> applyFilters = (String[] filters) -> {
+            model.setRowCount(0);
+            String searchText = filters[0].toLowerCase();
+            String category = filters[1];
+            String fromYear = filters[2];
+            String toYear = filters[3];
+
+            for (Object[] book : allBooksList) {
+                String title = (String) book[0];
+                String author = (String) book[1];
+                String year = (String) book[2];
+                String bookCategory = (String) book[4];
+
+                boolean matches = true;
+
+                // Search filter
+                if (!searchText.isEmpty()) {
+                    if (!title.toLowerCase().contains(searchText) &&
+                            !author.toLowerCase().contains(searchText)) {
+                        matches = false;
+                    }
+                }
+
+                // Category filter
+                if (matches && !category.equals("All Categories")) {
+                    if (!bookCategory.equalsIgnoreCase(category)) {
+                        matches = false;
+                    }
+                }
+
+                if (matches) {
+                    model.addRow(book);
+                }
+            }
+        };
 
         //API search
         searchBtn.addActionListener(e -> {
@@ -1635,13 +1883,223 @@ public class LoginWindow extends JFrame {
             }
         });
 
-        searchPanel.add(searchLabel);
-        searchPanel.add(searchField);
-        searchPanel.add(searchBtn);
+        // Refresh button - reload from API
+        refreshBtn.addActionListener(e -> {
+            loadAllBooksFromAPIWithCallback((books) -> {
+                allBooksList.clear();
+                allBooksList.addAll(books);
+                applyFilters.accept(new String[]{"", "All Categories", "", ""});
+                searchField.setText("");
+                //categoryFilter.setSelectedIndex(0);
+            });
+        });
 
-        JPanel centerPanel = new RoundedTable(new BorderLayout(10,10));
+        // Clear filters button
+        clearFiltersBtn.addActionListener(e -> {
+            searchField.setText("");
+            //categoryFilter.setSelectedIndex(0);
+            applyFilters.accept(new String[]{"", "All Categories", "", ""});
+        });
+
+        // Rest of your existing table setup...
+        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 5));
+        toolBar.setBackground(background);
+
+        JButton addBtn = new RoundedButton("Add Book");
+        JButton editBtn = new RoundedButton("Edit Book");
+        JButton deleteBtn = new RoundedButton("Delete Book");
+
+        Font btnFont = new Font("Segoe UI", Font.BOLD, 13);
+        addBtn.setFont(btnFont);
+        editBtn.setFont(btnFont);
+        deleteBtn.setFont(btnFont);
+
+        addBtn.setPreferredSize(new Dimension(110,35));
+        editBtn.setPreferredSize(new Dimension(110,35));
+        deleteBtn.setPreferredSize(new Dimension(110,35));
+
+        toolBar.add(addBtn);
+        toolBar.add(editBtn);
+        toolBar.add(deleteBtn);
+
+
+        // Enhanced Add Book with category
+        addBtn.addActionListener(e -> {
+            JTextField titleField = new JTextField();
+            JTextField authorField = new JTextField();
+            JTextField yearField = new JTextField();
+            JComboBox<String> categoryCombo = new JComboBox<>();
+            categoryCombo.addItem("Fiction");
+            categoryCombo.addItem("Non-Fiction");
+            categoryCombo.addItem("Mystery");
+            categoryCombo.addItem("Sci-Fi");
+            categoryCombo.addItem("Romance");
+            categoryCombo.addItem("Fantasy");
+            categoryCombo.addItem("Biography");
+            categoryCombo.addItem("History");
+
+            Object[] formElements = {
+                    "Book Title:", titleField,
+                    "Author:", authorField,
+                    "Publish Year:", yearField,
+                    "Category:", categoryCombo
+            };
+
+            int result = JOptionPane.showConfirmDialog(null, formElements,
+                    "Add New Book", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION && !titleField.getText().trim().isEmpty()) {
+                Object[] newBook = {
+                        titleField.getText().trim(),
+                        authorField.getText().trim(),
+                        yearField.getText().trim(),
+                        "N/A",
+                        (String) categoryCombo.getSelectedItem()
+                };
+                allBooksList.add(newBook);
+                model.addRow(newBook);
+            }
+        });
+
+        // Edit button with category
+        editBtn.addActionListener(e -> {
+            int selectedRow = booksTable.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select a book to edit.");
+                return;
+            }
+
+            String currentTitle = (String) model.getValueAt(selectedRow, 0);
+            String currentAuthor = (String) model.getValueAt(selectedRow, 1);
+            String currentYear = (String) model.getValueAt(selectedRow, 2);
+            String currentCategory = (String) model.getValueAt(selectedRow, 4);
+
+            JTextField titleField = new JTextField(currentTitle);
+            JTextField authorField = new JTextField(currentAuthor);
+            JTextField yearField = new JTextField(currentYear);
+            JComboBox<String> categoryCombo = new JComboBox<>();
+            categoryCombo.addItem("Fiction");
+            categoryCombo.addItem("Non-Fiction");
+            categoryCombo.addItem("Mystery");
+            categoryCombo.addItem("Sci-Fi");
+            categoryCombo.addItem("Romance");
+            categoryCombo.addItem("Fantasy");
+            categoryCombo.addItem("Biography");
+            categoryCombo.addItem("History");
+            categoryCombo.setSelectedItem(currentCategory);
+
+            Object[] form = {
+                    "Title:", titleField,
+                    "Author:", authorField,
+                    "Year Published:", yearField,
+                    "Category:", categoryCombo
+            };
+
+            int result = JOptionPane.showConfirmDialog(null, form, "Edit Book",
+                    JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                model.setValueAt(titleField.getText(), selectedRow, 0);
+                model.setValueAt(authorField.getText(), selectedRow, 1);
+                model.setValueAt(yearField.getText(), selectedRow, 2);
+                model.setValueAt((String) categoryCombo.getSelectedItem(), selectedRow, 4);
+
+                // Update the stored list
+                if (selectedRow < allBooksList.size()) {
+                    allBooksList.set(selectedRow, new Object[]{
+                            titleField.getText(),
+                            authorField.getText(),
+                            yearField.getText(),
+                            model.getValueAt(selectedRow, 3),
+                            categoryCombo.getSelectedItem()
+                    });
+                }
+            }
+        });
+
+        //delete button logic
+        deleteBtn.addActionListener(e -> {
+            int selectedRow = booksTable.getSelectedRow();
+
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(null, "Please select a book to delete.");
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    null,
+                    "Are you sure you want to delete this book?",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                model.removeRow(selectedRow);
+            }
+        });
+
+        panel.add(toolBar, BorderLayout.NORTH);
+
+        // Table customization
+        booksTable.setRowHeight(32);
+        booksTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        booksTable.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        booksTable.getTableHeader().setBackground(new Color(140,100,85));
+        booksTable.getTableHeader().setForeground(darkBrown);
+        booksTable.setShowVerticalLines(false);
+        booksTable.setGridColor(new Color(230,220,210));
+        booksTable.setSelectionBackground(new Color(156,165,118));
+        booksTable.setSelectionForeground(Color.WHITE);
+
+        // Add right-click context menu for quick actions
+        JPopupMenu contextMenu = new JPopupMenu();
+        JMenuItem deleteItem = new JMenuItem("Delete");
+        JMenuItem editItem = new JMenuItem("Edit");
+        JMenuItem copyTitleItem = new JMenuItem("Copy Title");
+
+        deleteItem.addActionListener(e -> deleteBtn.doClick());
+        editItem.addActionListener(e -> editBtn.doClick());
+        copyTitleItem.addActionListener(e -> {
+            int row = booksTable.getSelectedRow();
+            if (row != -1) {
+                String title = (String) model.getValueAt(row, 0);
+                java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                        .setContents(new java.awt.datatransfer.StringSelection(title), null);
+                JOptionPane.showMessageDialog(panel, "Title copied to clipboard!");
+            }
+        });
+
+        contextMenu.add(editItem);
+        contextMenu.add(deleteItem);
+        contextMenu.addSeparator();
+        contextMenu.add(copyTitleItem);
+
+        booksTable.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int row = booksTable.rowAtPoint(e.getPoint());
+                    booksTable.setRowSelectionInterval(row, row);
+                    contextMenu.show(booksTable, e.getX(), e.getY());
+                }
+            }
+            public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int row = booksTable.rowAtPoint(e.getPoint());
+                    booksTable.setRowSelectionInterval(row, row);
+                    contextMenu.show(booksTable, e.getX(), e.getY());
+                }
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(booksTable);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+
+        JPanel centerPanel = new RoundedPanel(10);
+        centerPanel.setLayout(new BorderLayout(10,10));
         centerPanel.setBackground(background);
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));        centerPanel.setBackground(background);
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 
         centerPanel.add(searchPanel, BorderLayout.NORTH);
         centerPanel.add(scrollPane, BorderLayout.CENTER);
@@ -1651,67 +2109,66 @@ public class LoginWindow extends JFrame {
         return panel;
     }
 
+    private void loadAllBooksFromAPIWithCallback(java.util.function.Consumer<java.util.List<Object[]>> callback) {
+        SwingWorker<JsonArray, Void> worker = new SwingWorker<>() {
+            @Override
+            protected JsonArray doInBackground() {
+                return API.searchBooks("popular fiction");
+            }
 
-    private JPanel createMyAccountPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            @Override
+            protected void done() {
+                try {
+                    JsonArray results = get();
+                    java.util.List<Object[]> booksList = new java.util.ArrayList<>();
 
-        JPanel infoPanel = new JPanel(new GridLayout(4, 2, 5, 5));
-        infoPanel.setBorder(BorderFactory.createTitledBorder("Account Information"));
+                    if (results != null && results.size() > 0) {
+                        for (int i = 0; i < Math.min(results.size(), 50); i++) {
+                            JsonObject book = results.get(i).getAsJsonObject();
 
-        infoPanel.add(new JLabel("Username:"));
-        infoPanel.add(new JLabel(currentUser));
-        infoPanel.add(new JLabel("Role:"));
-        infoPanel.add(new JLabel(currentUserRole));
-        infoPanel.add(new JLabel("Member Since:"));
-        infoPanel.add(new JLabel("2024-01-01"));
-        infoPanel.add(new JLabel("Books Borrowed:"));
-        infoPanel.add(new JLabel("3"));
+                            String title = book.has("title") ? book.get("title").getAsString() : "Unknown Title";
 
-        String[] columns = {"Book Title", "Borrow Date", "Due Date", "Status", "Fine"};
-        Object[][] data = {
-                {"The Great Gatsby", "2024-01-10", "2024-01-24", "Active", "$0.00"},
-                {"1984", "2024-01-05", "2024-01-19", "Overdue", "$2.50"}
+                            String author = "Unknown Author";
+                            if (book.has("author_name")) {
+                                JsonArray authors = book.get("author_name").getAsJsonArray();
+                                if (authors.size() > 0) author = authors.get(0).getAsString();
+                            }
+
+                            String year = book.has("first_publish_year") ?
+                                    String.valueOf(book.get("first_publish_year").getAsInt()) : "N/A";
+
+                            String editionCount = book.has("edition_count") ?
+                                    String.valueOf(book.get("edition_count").getAsInt()) : "N/A";
+
+                            // Guess category from subjects if available
+                            String category = "General";
+                            if (book.has("subject")) {
+                                JsonArray subjects = book.getAsJsonArray("subject");
+                                if (subjects.size() > 0) {
+                                    String subject = subjects.get(0).getAsString().toLowerCase();
+                                    if (subject.contains("fiction")) category = "Fiction";
+                                    else if (subject.contains("mystery")) category = "Mystery";
+                                    else if (subject.contains("sci-fi") || subject.contains("science fiction")) category = "Sci-Fi";
+                                    else if (subject.contains("romance")) category = "Romance";
+                                    else if (subject.contains("fantasy")) category = "Fantasy";
+                                    else if (subject.contains("biography")) category = "Biography";
+                                    else if (subject.contains("history")) category = "History";
+                                    else if (subject.contains("non-fiction")) category = "Non-Fiction";
+                                }
+                            }
+
+                            booksList.add(new Object[]{title, author, year, editionCount, category});
+                        }
+                    }
+                    callback.accept(booksList);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    callback.accept(new java.util.ArrayList<>());
+                }
+            }
         };
-
-        JTable borrowedTable = new JTable(data, columns);
-        JScrollPane scrollPane = new JScrollPane(borrowedTable);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Currently Borrowed Books"));
-
-        panel.add(infoPanel, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
-
-        return panel;
+        worker.execute();
     }
-
-    private JPanel createSearchPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        JPanel searchBarPanel = new JPanel(new BorderLayout(5, 5));
-        JTextField searchField = new JTextField();
-        JButton searchButton = new JButton("Search");
-        searchBarPanel.add(searchField, BorderLayout.CENTER);
-        searchBarPanel.add(searchButton, BorderLayout.EAST);
-
-        JPanel advancedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        advancedPanel.add(new JLabel("Search in:"));
-        String[] searchIn = {"All Fields", "Title", "Author", "ISBN"};
-        JComboBox<String> searchInBox = new JComboBox<>(searchIn);
-        advancedPanel.add(searchInBox);
-
-        String[] categories = {"All Categories", "Fiction", "Non-Fiction", "Science"};
-        JComboBox<String> categoryBox = new JComboBox<>(categories);
-        advancedPanel.add(categoryBox);
-
-        advancedPanel.add(new JCheckBox("Available only"));
-
-        panel.add(searchBarPanel, BorderLayout.NORTH);
-        panel.add(advancedPanel, BorderLayout.CENTER);
-
-        return panel;
-    }
-
 
     private void setupMenuBar() {
         JMenuBar menuBar = new JMenuBar();
@@ -1750,6 +2207,10 @@ public class LoginWindow extends JFrame {
 
             //switch to admin
             cardLayout.show(mainPanel, "ADMIN_DASHBOARD");
+
+            SwingUtilities.invokeLater(() -> {
+                loadAllBooksFromAPI();
+            });
 
             JOptionPane.showMessageDialog(this,
                     "Admin login successful!",
