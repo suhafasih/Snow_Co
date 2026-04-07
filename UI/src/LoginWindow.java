@@ -1996,10 +1996,13 @@ public class LoginWindow extends JFrame {
             String currentAuthor = (String) model.getValueAt(selectedRow, 1);
             String currentYear = (String) model.getValueAt(selectedRow, 2);
             String currentCategory = (String) model.getValueAt(selectedRow, 4);
+            String currentPrice = (String) model.getValueAt(selectedRow, 5);
 
             JTextField titleField = new JTextField(currentTitle);
             JTextField authorField = new JTextField(currentAuthor);
             JTextField yearField = new JTextField(currentYear);
+            JTextField priceField = new JTextField(currentPrice);
+
             JComboBox<String> categoryCombo = new JComboBox<>();
             categoryCombo.addItem("Fiction");
             categoryCombo.addItem("Non-Fiction");
@@ -2011,11 +2014,18 @@ public class LoginWindow extends JFrame {
             categoryCombo.addItem("History");
             categoryCombo.setSelectedItem(currentCategory);
 
+            JComboBox<String> formatCombo = new JComboBox<>();
+            formatCombo.addItem("Paper");
+            formatCombo.addItem("Hardcover");
+            formatCombo.addItem("E-Book");
+            formatCombo.addItem("Audiobook");
+
             Object[] form = {
                     "Title:", titleField,
                     "Author:", authorField,
                     "Year Published:", yearField,
-                    "Category:", categoryCombo
+                    "Category:", categoryCombo,
+                    "Price ($):", priceField
             };
 
             int result = JOptionPane.showConfirmDialog(null, form, "Edit Book",
