@@ -3,6 +3,8 @@ Team members- Zoha, Suha, Seline, Zainab, Ilakkiyan
 
 # Library Management System – MVP
 
+We are developing an interactive book catalog that lets users browse and interact with a collection of books. The online library will function as a digital platform that enables users to borrow both physical and digital copies of books via its unified cataloging system. The platform aims to deliver fast title access while allowing users to discover content and interact with the platform.
+
 ## Basic Setup Instructions
 
 Follow these steps to run the application's Minimum Viable Product (MVP).
@@ -40,7 +42,7 @@ When you run either script, the system will perform the following steps to ensur
 
 ---
 
-## 3. Run the Application
+## 3. Run the Application.
 
 If the build is successful, the program will automatically open the Login Window.
 
@@ -54,4 +56,6 @@ Log in using either of the following test accounts:
 - Username is admin.
 - Admin password is password.
 
-From the dashboards, you can access the available  features, such as viewing books or the search bar.
+From the dashboards, you can access the available  features, such as viewing books or using the search bar.
+
+### USER DASHBOARD
