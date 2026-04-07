@@ -2294,7 +2294,7 @@ public class LoginWindow extends JFrame {
         isLoggedIn = false;
         currentUser = "";
         currentUserRole = "";
-        statusLabel.setText("Status: Not logged in");
+        statusLabel.setText("");
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
 
