@@ -549,21 +549,27 @@ public class LoginWindow extends JFrame {
         content.setBackground(cream);
         content.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
+        //horizontal wraper
+        JPanel searchContainer = new JPanel(new BorderLayout(10, 0)); // 10px gap between bar and button
+        searchContainer.setBackground(cream);
+        searchContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        searchContainer.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        //search Field
+        //search Field, center
         JTextField searchField = new RoundedTextField(20);
-        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         searchField.putClientProperty("JTextField.placeholderText", "Start typing to see suggestions...");
-        searchField.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        //search Button
+        //search Button, east
         JButton searchButton = new RoundedButton("Search ");
         searchButton.setBackground(warmBrown);
         searchButton.setForeground(Color.WHITE);
-        searchButton.setMaximumSize(new Dimension(200, 45));
         searchButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        searchButton.setAlignmentX(Component.LEFT_ALIGNMENT);//center under genre
+        searchButton.setPreferredSize(new Dimension(120, 45));
+
+        //add to wraper
+        searchContainer.add(searchField, BorderLayout.CENTER);
+        searchContainer.add(searchButton, BorderLayout.EAST);
 
         //searching suggestion as dropdown menu
         JPopupMenu suggestionMenu = new JPopupMenu();
@@ -577,7 +583,7 @@ public class LoginWindow extends JFrame {
                     @Override
                     protected JsonArray doInBackground() {
                         // Using the general search so it catches authors, titles, and genres
-                        return API.searchBooks(query + "&limit=5");
+                        return API.getAutocompleteSuggestions(query);
                     }
 
                     @Override
@@ -743,11 +749,8 @@ public class LoginWindow extends JFrame {
         //genre pills
         content.add(categoryPills);
         content.add(Box.createVerticalStrut(20));
-        //search bar
-        content.add(searchField);
-        content.add(Box.createVerticalStrut(25));
-        //search button
-        content.add(searchButton);
+        //search container for both search bar and button
+        content.add(searchContainer);
         content.add(Box.createVerticalStrut(30));
 
 
