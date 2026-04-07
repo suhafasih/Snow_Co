@@ -1744,6 +1744,7 @@ public class LoginWindow extends JFrame {
         });
 
         // Edit button with category
+        // Edit button with category - FIXED VERSION
         editBtn.addActionListener(e -> {
             int selectedRow = booksTable.getSelectedRow();
             if (selectedRow == -1) {
@@ -1751,17 +1752,22 @@ public class LoginWindow extends JFrame {
                 return;
             }
 
-            String currentTitle = (String) model.getValueAt(selectedRow, 0);
-            String currentAuthor = (String) model.getValueAt(selectedRow, 1);
-            String currentYear = (String) model.getValueAt(selectedRow, 2);
-            String currentCategory = (String) model.getValueAt(selectedRow, 4);
-            String currentPrice = (String) model.getValueAt(selectedRow, 5);
+            int modelRow = booksTable.convertRowIndexToModel(selectedRow);
+
+            // Check if the model row is valid
+            if (modelRow < 0 || modelRow >= model.getRowCount()) {
+                JOptionPane.showMessageDialog(null, "Invalid row selection.");
+                return;
+            }
+
+            String currentTitle = (String) model.getValueAt(modelRow, 0);
+            String currentAuthor = (String) model.getValueAt(modelRow, 1);
+            String currentYear = (String) model.getValueAt(modelRow, 2);
+            String currentCategory = (String) model.getValueAt(modelRow, 4); // Index 4 is category
 
             JTextField titleField = new JTextField(currentTitle);
             JTextField authorField = new JTextField(currentAuthor);
             JTextField yearField = new JTextField(currentYear);
-            JTextField priceField = new JTextField(currentPrice);
-
             JComboBox<String> categoryCombo = new JComboBox<>();
             categoryCombo.addItem("Fiction");
             categoryCombo.addItem("Non-Fiction");
@@ -1771,41 +1777,39 @@ public class LoginWindow extends JFrame {
             categoryCombo.addItem("Fantasy");
             categoryCombo.addItem("Biography");
             categoryCombo.addItem("History");
+            categoryCombo.addItem("Thriller");
+            categoryCombo.addItem("Classic");
             categoryCombo.setSelectedItem(currentCategory);
-
-            JComboBox<String> formatCombo = new JComboBox<>();
-            formatCombo.addItem("Paper");
-            formatCombo.addItem("Hardcover");
-            formatCombo.addItem("E-Book");
-            formatCombo.addItem("Audiobook");
 
             Object[] form = {
                     "Title:", titleField,
                     "Author:", authorField,
-                    "Year Published:", yearField,
-                    "Category:", categoryCombo,
-                    "Price ($):", priceField
+                    "Year:", yearField,
+                    "Category:", categoryCombo
             };
 
             int result = JOptionPane.showConfirmDialog(null, form, "Edit Book",
                     JOptionPane.OK_CANCEL_OPTION);
 
             if (result == JOptionPane.OK_OPTION) {
-                model.setValueAt(titleField.getText(), selectedRow, 0);
-                model.setValueAt(authorField.getText(), selectedRow, 1);
-                model.setValueAt(yearField.getText(), selectedRow, 2);
-                model.setValueAt((String) categoryCombo.getSelectedItem(), selectedRow, 4);
+                // Update the model (not the view directly)
+                model.setValueAt(titleField.getText(), modelRow, 0);
+                model.setValueAt(authorField.getText(), modelRow, 1);
+                model.setValueAt(yearField.getText(), modelRow, 2);
+                model.setValueAt((String) categoryCombo.getSelectedItem(), modelRow, 4);
 
-                // Update the stored list
-                if (selectedRow < allBooksList.size()) {
-                    allBooksList.set(selectedRow, new Object[]{
+                // Update the stored list if it exists and matches
+                if (modelRow < allBooksList.size()) {
+                    allBooksList.set(modelRow, new Object[]{
                             titleField.getText(),
                             authorField.getText(),
                             yearField.getText(),
-                            model.getValueAt(selectedRow, 3),
+                            model.getValueAt(modelRow, 3), // Keep existing edition count
                             categoryCombo.getSelectedItem()
                     });
                 }
+
+                JOptionPane.showMessageDialog(panel, "Book updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
