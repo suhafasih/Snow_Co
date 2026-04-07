@@ -218,7 +218,7 @@ public class LoginWindow extends JFrame {
                         int editions = doc.has("edition_count") ? doc.get("edition_count").getAsInt() : 1;
                         double newPrice  = 24.99;
                         double usedPrice = Math.max(3.99, newPrice - (editions * 0.35));
-                        price = String.format("New: $%.2f    |    Used from: $%.2f", newPrice, usedPrice);
+                        price = String.format("Paper: $%.2f    |    Ebook: $%.2f", newPrice, usedPrice);
                     }
                 } catch (Exception ex) { ex.printStackTrace(); }
                 return new String[]{summary, price};
