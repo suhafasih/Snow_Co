@@ -1281,6 +1281,8 @@ public class LoginWindow extends JFrame {
                     model.setRowCount(0); // Clear existing rows
 
                     if (results != null && results.size() > 0) {
+                        java.util.Random rand = new java.util.Random();
+                        String[] formats = {"Paper", "Hardcover", "E-Book", "Audiobook"};
                         for (int i = 0; i < Math.min(results.size(), 50); i++) {
                             JsonObject book = results.get(i).getAsJsonObject();
 
@@ -1304,8 +1306,15 @@ public class LoginWindow extends JFrame {
                                     ? String.valueOf(book.get("edition_count").getAsInt())
                                     : "N/A";
 
+                            String format = formats[rand.nextInt(formats.length)];
+                            String price = String.format("%.2f", 12.99 + (rand.nextDouble() * 15));
+                            String category = "Fiction";
+                            if (book.has("subject")){
+                                category = book.getAsJsonArray("subject").get(0).getAsString();
+                            }
+
                             // Add row to table
-                            model.addRow(new Object[]{title, author, year, editionCount});
+                            model.addRow(new Object[]{title, author, year, editionCount, format, price, category});
                         }
 
                         JOptionPane.showMessageDialog(null,
@@ -1561,7 +1570,7 @@ public class LoginWindow extends JFrame {
                 String title = (String) book[0];
                 String author = (String) book[1];
                 String year = (String) book[2];
-                String bookCategory = (String) book[4];
+                String bookCategory = (String) book[6];
 
                 boolean matches = true;
 
@@ -1961,7 +1970,7 @@ public class LoginWindow extends JFrame {
                                     String.valueOf(book.get("edition_count").getAsInt()) : "N/A";
 
                             String format = formats[rand.nextInt(formats.length)];
-                            String price = String.format("%.f", 9.99 + (rand.nextDouble() * 20.0));
+                            String price = String.format("%.2f", 9.99 + (rand.nextDouble() * 20.0));
 
                             // Guess category from subjects if available
                             String category = "General";
