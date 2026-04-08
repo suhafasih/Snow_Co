@@ -580,7 +580,7 @@ public class LoginWindow extends JFrame {
                 SwingWorker<JsonArray, Void> suggestionWorker = new SwingWorker<>() {
                     @Override
                     protected JsonArray doInBackground() {
-                        // Using the general search so it catches authors, titles, and genres
+                        // Fetches the advanced query from API.java
                         return API.getAutocompleteSuggestions(query);
                     }
 
@@ -588,34 +588,31 @@ public class LoginWindow extends JFrame {
                     protected void done() {
                         try {
                             JsonArray results = get();
+
+                            suggestionMenu.setVisible(false);
                             suggestionMenu.removeAll();
 
-                            if (results.size() > 0) {
+                            if (results != null && results.size() > 0) {
                                 for (int i = 0; i < results.size(); i++) {
                                     JsonObject book = results.get(i).getAsJsonObject();
 
-                                    //get Title
                                     String title = book.has("title") ? book.get("title").getAsString() : "";
 
-                                    //get Author
                                     String author = "";
                                     if (book.has("author_name")) {
                                         author = book.get("author_name").getAsJsonArray().get(0).getAsString();
                                     }
 
-                                    //get Genre (Subject)
                                     String genre = "";
                                     if (book.has("subject")) {
                                         genre = book.getAsJsonArray("subject").get(0).getAsString();
                                     }
 
                                     if (!title.isEmpty()) {
-                                        //descriptive string for the user to understands the match
                                         String displayText = title;
                                         if (!author.isEmpty()) displayText += " by " + author;
                                         if (!genre.isEmpty()) displayText += " [" + genre + "]";
 
-                                        //limt display
                                         if (displayText.length() > 65) {
                                             displayText = displayText.substring(0, 62) + "...";
                                         }
@@ -633,10 +630,10 @@ public class LoginWindow extends JFrame {
                                         suggestionMenu.add(item);
                                     }
                                 }
+                                suggestionMenu.pack();
+
                                 suggestionMenu.show(searchField, 0, searchField.getHeight());
                                 searchField.requestFocus();
-                            } else {
-                                suggestionMenu.setVisible(false);
                             }
                         } catch (Exception ex) {
                             ex.printStackTrace();
