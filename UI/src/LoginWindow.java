@@ -37,6 +37,7 @@ public class LoginWindow extends JFrame {
     private CardLayout cardLayout;
     private JPanel borrowedGridPanel;
     private JPanel allBooksGrid;
+    private java.util.List<Object[]> allBooksList = new java.util.ArrayList<>();
 
     public LoginWindow() {
         setTitle("Library Login");
@@ -580,7 +581,7 @@ public class LoginWindow extends JFrame {
                 SwingWorker<JsonArray, Void> suggestionWorker = new SwingWorker<>() {
                     @Override
                     protected JsonArray doInBackground() {
-                        // Using the general search so it catches authors, titles, and genres
+                        // Fetches the advanced query from API.java
                         return API.getAutocompleteSuggestions(query);
                     }
 
@@ -588,34 +589,31 @@ public class LoginWindow extends JFrame {
                     protected void done() {
                         try {
                             JsonArray results = get();
+
+                            suggestionMenu.setVisible(false);
                             suggestionMenu.removeAll();
 
-                            if (results.size() > 0) {
+                            if (results != null && results.size() > 0) {
                                 for (int i = 0; i < results.size(); i++) {
                                     JsonObject book = results.get(i).getAsJsonObject();
 
-                                    //get Title
                                     String title = book.has("title") ? book.get("title").getAsString() : "";
 
-                                    //get Author
                                     String author = "";
                                     if (book.has("author_name")) {
                                         author = book.get("author_name").getAsJsonArray().get(0).getAsString();
                                     }
 
-                                    //get Genre (Subject)
                                     String genre = "";
                                     if (book.has("subject")) {
                                         genre = book.getAsJsonArray("subject").get(0).getAsString();
                                     }
 
                                     if (!title.isEmpty()) {
-                                        //descriptive string for the user to understands the match
                                         String displayText = title;
                                         if (!author.isEmpty()) displayText += " by " + author;
                                         if (!genre.isEmpty()) displayText += " [" + genre + "]";
 
-                                        //limt display
                                         if (displayText.length() > 65) {
                                             displayText = displayText.substring(0, 62) + "...";
                                         }
@@ -633,10 +631,10 @@ public class LoginWindow extends JFrame {
                                         suggestionMenu.add(item);
                                     }
                                 }
+                                suggestionMenu.pack();
+
                                 suggestionMenu.show(searchField, 0, searchField.getHeight());
                                 searchField.requestFocus();
-                            } else {
-                                suggestionMenu.setVisible(false);
                             }
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -1310,11 +1308,29 @@ public class LoginWindow extends JFrame {
                             String price = String.format("%.2f", 12.99 + (rand.nextDouble() * 15));
                             String category = "Fiction";
                             if (book.has("subject")){
-                                category = book.getAsJsonArray("subject").get(0).getAsString();
+                                JsonArray subjects = book.getAsJsonArray("subject");
+                                boolean matchFound = false;
+                                for (int s = 0; s < Math.min(subjects.size(), 5); s++) {
+                                    String subject = subjects.get(0).getAsString().toLowerCase();
+                                    if (subject.contains("fiction")) category = "Fiction";
+                                    else if (subject.contains("mystery")) category = "Mystery";
+                                    else if (subject.contains("sci-fi") || subject.contains("science fiction")) category = "Sci-Fi";
+                                    else if (subject.contains("romance")) category = "Romance";
+                                    else if (subject.contains("fantasy")) category = "Fantasy";
+                                    else if (subject.contains("biography")) category = "Biography";
+                                    else if (subject.contains("history")) category = "History";
+                                    else if (subject.contains("non-fiction")) category = "Non-Fiction";
+                                    if (matchFound) break;
+                                }
+                                if (!matchFound && subjects.size() > 0){
+                                    String firstSub = subjects.get(0).getAsString();
+                                    category = firstSub.substring(0, 1).toUpperCase() + firstSub.substring(1).toLowerCase();
+                                }
                             }
-
                             // Add row to table
                             model.addRow(new Object[]{title, author, year, editionCount, format, price, category});
+
+                            allBooksList.add(new Object[]{title, author, year, editionCount, format, price, category});
                         }
 
                         JOptionPane.showMessageDialog(null,
@@ -1501,7 +1517,7 @@ public class LoginWindow extends JFrame {
         this.booksTable = new JTable(model);
 
         // Store all books for filtering
-        java.util.List<Object[]> allBooksList = new java.util.ArrayList<>();
+//        java.util.List<Object[]> allBooksList = new java.util.ArrayList<>();
 
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
@@ -1983,7 +1999,8 @@ public class LoginWindow extends JFrame {
                             String category = "General";
                             if (book.has("subject")) {
                                 JsonArray subjects = book.getAsJsonArray("subject");
-                                if (subjects.size() > 0) {
+                                boolean matchFound = false;
+                                for (int s = 0; s < Math.min(subjects.size(), 5); s++) {
                                     String subject = subjects.get(0).getAsString().toLowerCase();
                                     if (subject.contains("fiction")) category = "Fiction";
                                     else if (subject.contains("mystery")) category = "Mystery";
@@ -1993,7 +2010,13 @@ public class LoginWindow extends JFrame {
                                     else if (subject.contains("biography")) category = "Biography";
                                     else if (subject.contains("history")) category = "History";
                                     else if (subject.contains("non-fiction")) category = "Non-Fiction";
+                                    if (matchFound) break;
                                 }
+                                if (!matchFound && subjects.size() > 0){
+                                    String firstSub = subjects.get(0).getAsString();
+                                    category = firstSub.substring(0, 1).toUpperCase() + firstSub.substring(1).toLowerCase();
+                                }
+
                             }
 
                             booksList.add(new Object[]{title, author, year, editionCount, format, price, category});
