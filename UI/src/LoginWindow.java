@@ -1487,7 +1487,7 @@ public class LoginWindow extends JFrame {
 
     //Admin panel Components
     private JPanel createBooksManagementPanel() {
-        String[] columns = {"Title", "Author", "First Publish Year", "Edition Count", "Category"};
+        String[] columns = {"Title", "Author", "First Publish Year", "Edition Count", "Format", "Price", "Category"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
         this.booksTable = new JTable(model);
 
@@ -1763,11 +1763,22 @@ public class LoginWindow extends JFrame {
             String currentTitle = (String) model.getValueAt(modelRow, 0);
             String currentAuthor = (String) model.getValueAt(modelRow, 1);
             String currentYear = (String) model.getValueAt(modelRow, 2);
-            String currentCategory = (String) model.getValueAt(modelRow, 4); // Index 4 is category
+            String currentEditions = (String) model.getValueAt(modelRow, 3);
+            String currentFormat = (String) model.getValueAt(modelRow, 4);
+            String currentPrice = (String) model.getValueAt(modelRow, 5);
+            String currentCategory = (String) model.getValueAt(modelRow, 6); // Index 4 is category
 
             JTextField titleField = new JTextField(currentTitle);
             JTextField authorField = new JTextField(currentAuthor);
             JTextField yearField = new JTextField(currentYear);
+            JTextField priceField = new JTextField(currentPrice);
+
+            JComboBox<String> formatCombo = new JComboBox<>();
+            formatCombo.addItem("Paper");
+            formatCombo.addItem("Hardcover");
+            formatCombo.addItem("E-Book");
+            formatCombo.addItem("Audiobook");
+
             JComboBox<String> categoryCombo = new JComboBox<>();
             categoryCombo.addItem("Fiction");
             categoryCombo.addItem("Non-Fiction");
@@ -1785,6 +1796,8 @@ public class LoginWindow extends JFrame {
                     "Title:", titleField,
                     "Author:", authorField,
                     "Year:", yearField,
+                    "Format: ", formatCombo,
+                    "Price ($): ", priceField,
                     "Category:", categoryCombo
             };
 
@@ -1796,7 +1809,11 @@ public class LoginWindow extends JFrame {
                 model.setValueAt(titleField.getText(), modelRow, 0);
                 model.setValueAt(authorField.getText(), modelRow, 1);
                 model.setValueAt(yearField.getText(), modelRow, 2);
-                model.setValueAt((String) categoryCombo.getSelectedItem(), modelRow, 4);
+
+                model.setValueAt(formatCombo.getSelectedItem(), modelRow, 4);
+                model.setValueAt(priceField.getText(), modelRow, 5);
+
+                model.setValueAt((String) categoryCombo.getSelectedItem(), modelRow, 6);
 
                 // Update the stored list if it exists and matches
                 if (modelRow < allBooksList.size()) {
@@ -1804,6 +1821,9 @@ public class LoginWindow extends JFrame {
                             titleField.getText(),
                             authorField.getText(),
                             yearField.getText(),
+                            currentEditions,
+                            formatCombo.getSelectedItem(),
+                            priceField.getText(),
                             model.getValueAt(modelRow, 3), // Keep existing edition count
                             categoryCombo.getSelectedItem()
                     });
@@ -1918,7 +1938,11 @@ public class LoginWindow extends JFrame {
                     JsonArray results = get();
                     java.util.List<Object[]> booksList = new java.util.ArrayList<>();
 
+
                     if (results != null && results.size() > 0) {
+                        java.util.Random rand = new java.util.Random();
+                        String[] formats = {"Paper", "Hardcover", "E-Book", "Audiobook"};
+
                         for (int i = 0; i < Math.min(results.size(), 50); i++) {
                             JsonObject book = results.get(i).getAsJsonObject();
 
@@ -1935,6 +1959,9 @@ public class LoginWindow extends JFrame {
 
                             String editionCount = book.has("edition_count") ?
                                     String.valueOf(book.get("edition_count").getAsInt()) : "N/A";
+
+                            String format = formats[rand.nextInt(formats.length)];
+                            String price = String.format("%.f", 9.99 + (rand.nextDouble() * 20.0));
 
                             // Guess category from subjects if available
                             String category = "General";
@@ -1953,7 +1980,7 @@ public class LoginWindow extends JFrame {
                                 }
                             }
 
-                            booksList.add(new Object[]{title, author, year, editionCount, category});
+                            booksList.add(new Object[]{title, author, year, editionCount, format, price, category});
                         }
                     }
                     callback.accept(booksList);
