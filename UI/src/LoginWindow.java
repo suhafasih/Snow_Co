@@ -184,7 +184,7 @@ public class LoginWindow extends JFrame {
                     URL searchUrl = new URL("https://openlibrary.org/search.json?q=" + encoded + "&limit=1");
                     java.net.HttpURLConnection conn = (java.net.HttpURLConnection) searchUrl.openConnection();
                     conn.setRequestProperty("User-Agent", "LibraryCatalogueApp/1.0");
-                    conn.setConnectTimeout(7000); conn.setReadTimeout(7000);
+                    conn.setConnectTimeout(8000); conn.setReadTimeout(8000);
                     java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -200,7 +200,7 @@ public class LoginWindow extends JFrame {
                             URL workUrl = new URL("https://openlibrary.org" + workKey + ".json");
                             java.net.HttpURLConnection wconn = (java.net.HttpURLConnection) workUrl.openConnection();
                             wconn.setRequestProperty("User-Agent", "LibraryCatalogueApp/1.0");
-                            wconn.setConnectTimeout(7000); wconn.setReadTimeout(7000);
+                            wconn.setConnectTimeout(8000); wconn.setReadTimeout(8000);
                             java.io.BufferedReader wreader = new java.io.BufferedReader(new java.io.InputStreamReader(wconn.getInputStream()));
                             StringBuilder wsb = new StringBuilder();
                             while ((line = wreader.readLine()) != null) wsb.append(line);
@@ -1505,6 +1505,7 @@ public class LoginWindow extends JFrame {
 
         Color background = new Color(250,245,235);
         Color darkBrown = new Color(80, 60, 50);
+        Color sage = new Color(156, 165, 118);
 
         JPanel panel = new RoundedPanel(10);
         panel.setLayout(new BorderLayout(10,10));
@@ -1522,25 +1523,6 @@ public class LoginWindow extends JFrame {
         JTextField searchField = new RoundedTextField(15);
         searchField.setPreferredSize(new Dimension(150, 35));
 
-        // Category filter dropdown
-//        JLabel categoryLabel = new JLabel("Category:");
-//        categoryLabel.setFont(new Font("Georgia", Font.BOLD, 14));
-//        JComboBox<String> categoryFilter = new JComboBox<>();
-//        categoryFilter.addItem("All Categories");
-//        categoryFilter.addItem("Fiction");
-//        categoryFilter.addItem("Mystery");
-//        categoryFilter.addItem("Sci-Fi");
-//        categoryFilter.addItem("Romance");
-//        categoryFilter.addItem("Fantasy");
-//        categoryFilter.addItem("Biography");
-//        categoryFilter.addItem("History");
-//        categoryFilter.addItem("Non-Fiction");
-//        categoryFilter.addItem("Classic");
-//        categoryFilter.addItem("Thriller");
-//        categoryFilter.setPreferredSize(new Dimension(140, 35));
-//        categoryFilter.setBackground(Color.WHITE);
-
-
         // Buttons
         JButton searchBtn = new RoundedButton("Search");
         searchBtn.setPreferredSize(new Dimension(100, 35));
@@ -1553,24 +1535,17 @@ public class LoginWindow extends JFrame {
         searchPanel.add(searchLabel);
         searchPanel.add(searchField);
         searchPanel.add(searchBtn);
-//        searchPanel.add(categoryLabel);
-//        searchPanel.add(categoryFilter);
-//        searchPanel.add(refreshBtn);
-//        searchPanel.add(clearFiltersBtn);
+        //searchPanel.add(refreshBtn);
+        //searchPanel.add(clearFiltersBtn);
 
         // Filter method
         java.util.function.Consumer<String[]> applyFilters = (String[] filters) -> {
             model.setRowCount(0);
             String searchText = filters[0].toLowerCase();
-            String category = filters[1];
-            String fromYear = filters[2];
-            String toYear = filters[3];
 
             for (Object[] book : allBooksList) {
                 String title = (String) book[0];
                 String author = (String) book[1];
-                String year = (String) book[2];
-                String bookCategory = (String) book[6];
 
                 boolean matches = true;
 
@@ -1582,20 +1557,13 @@ public class LoginWindow extends JFrame {
                     }
                 }
 
-                // Category filter
-                if (matches && !category.equals("All Categories")) {
-                    if (!bookCategory.equalsIgnoreCase(category)) {
-                        matches = false;
-                    }
-                }
-
                 if (matches) {
                     model.addRow(book);
                 }
             }
         };
 
-        //API search
+        // API search
         searchBtn.addActionListener(e -> {
             String query = searchField.getText().trim();
 
@@ -1604,9 +1572,9 @@ public class LoginWindow extends JFrame {
                 searchBtn.setEnabled(false);
 
                 model.setRowCount(0); // clear table
+                allBooksList.clear(); // Clear stored books
 
                 SwingWorker<JsonArray, Void> worker = new SwingWorker<>() {
-
                     @Override
                     protected JsonArray doInBackground() {
                         return API.searchBooks(query);
@@ -1616,63 +1584,84 @@ public class LoginWindow extends JFrame {
                     protected void done() {
                         try {
                             JsonArray results = get();
+                            java.util.Random rand = new java.util.Random();
+                            String[] formats = {"Paperback", "Hardcover", "E-Book", "Audiobook"};
 
-                            for (int i = 0; i < Math.min(results.size(), 15); i++) {
+                            for (int i = 0; i < Math.min(results.size(), 50); i++) {
                                 JsonObject book = results.get(i).getAsJsonObject();
 
                                 String title = book.has("title")
                                         ? book.get("title").getAsString()
-                                        : "Unknown";
+                                        : "Unknown Title";
 
-                                String author = "Unknown";
+                                String author = "Unknown Author";
                                 if (book.has("author_name")) {
-                                    author = book.get("author_name")
-                                            .getAsJsonArray().get(0).getAsString();
+                                    JsonArray authors = book.get("author_name").getAsJsonArray();
+                                    if (authors.size() > 0) {
+                                        author = authors.get(0).getAsString();
+                                    }
                                 }
 
                                 String year = book.has("first_publish_year")
-                                        ? book.get("first_publish_year").getAsString()
+                                        ? String.valueOf(book.get("first_publish_year").getAsInt())
                                         : "N/A";
 
-                                String edition = book.has("edition_count")
-                                        ? book.get("edition_count").getAsString()
+                                String editionCount = book.has("edition_count")
+                                        ? String.valueOf(book.get("edition_count").getAsInt())
                                         : "N/A";
 
-                                model.addRow(new Object[]{title, author, year, edition});
+                                String format = formats[rand.nextInt(formats.length)];
+                                String price = String.format("%.2f", 12.99 + (rand.nextDouble() * 15));
+
+                                String category = "Fiction";
+                                if (book.has("subject") && book.getAsJsonArray("subject").size() > 0) {
+                                    category = book.getAsJsonArray("subject").get(0).getAsString();
+                                    if (category.length() > 30) {
+                                        category = category.substring(0, 27) + "...";
+                                    }
+                                }
+
+                                Object[] bookData = new Object[]{title, author, year, editionCount, format, "$" + price, category};
+                                allBooksList.add(bookData);
+                                model.addRow(bookData);
                             }
+
+                            JOptionPane.showMessageDialog(panel,
+                                    "Successfully loaded " + model.getRowCount() + " books!",
+                                    "Success",
+                                    JOptionPane.INFORMATION_MESSAGE);
 
                         } catch (Exception ex) {
                             ex.printStackTrace();
+                            JOptionPane.showMessageDialog(panel,
+                                    "Error loading books: " + ex.getMessage(),
+                                    "Error",
+                                    JOptionPane.ERROR_MESSAGE);
                         } finally {
                             searchBtn.setText("Search");
                             searchBtn.setEnabled(true);
                         }
                     }
                 };
-
                 worker.execute();
             }
         });
 
         // Refresh button - reload from API
         refreshBtn.addActionListener(e -> {
-            loadAllBooksFromAPIWithCallback((books) -> {
-                allBooksList.clear();
-                allBooksList.addAll(books);
-                applyFilters.accept(new String[]{"", "All Categories", "", ""});
-                searchField.setText("");
-                //categoryFilter.setSelectedIndex(0);
-            });
+            searchField.setText("");
+            model.setRowCount(0);
+            allBooksList.clear();
+            searchBtn.doClick(); // Trigger search with default popular books
         });
 
         // Clear filters button
         clearFiltersBtn.addActionListener(e -> {
             searchField.setText("");
-            //categoryFilter.setSelectedIndex(0);
-            applyFilters.accept(new String[]{"", "All Categories", "", ""});
+            applyFilters.accept(new String[]{""});
         });
 
-        // Rest of your existing table setup...
+        // Toolbar
         JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 5));
         toolBar.setBackground(background);
 
@@ -1693,16 +1682,16 @@ public class LoginWindow extends JFrame {
         toolBar.add(editBtn);
         toolBar.add(deleteBtn);
 
-
-        // Enhanced Add Book with category
+        // Add Book button
         addBtn.addActionListener(e -> {
             JTextField titleField = new JTextField();
             JTextField authorField = new JTextField();
             JTextField yearField = new JTextField();
             JTextField priceField = new JTextField("12.99");
+            JTextField editionField = new JTextField("1");
 
             JComboBox<String> formatCombo = new JComboBox<>();
-            formatCombo.addItem("Paper");
+            formatCombo.addItem("Paperback");
             formatCombo.addItem("Hardcover");
             formatCombo.addItem("E-Book");
             formatCombo.addItem("Audiobook");
@@ -1717,10 +1706,10 @@ public class LoginWindow extends JFrame {
             categoryCombo.addItem("Biography");
             categoryCombo.addItem("History");
 
-            formatCombo.addActionListener(event ->{
+            formatCombo.addActionListener(event -> {
                 String selected = (String) formatCombo.getSelectedItem();
                 if (selected.equals("Hardcover")) priceField.setText("24.99");
-                else if (selected.equals("Paper")) priceField.setText("12.99");
+                else if (selected.equals("Paperback")) priceField.setText("12.99");
                 else if (selected.equals("E-Book")) priceField.setText("9.99");
                 else if (selected.equals("Audiobook")) priceField.setText("19.99");
             });
@@ -1729,8 +1718,9 @@ public class LoginWindow extends JFrame {
                     "Book Title:", titleField,
                     "Author:", authorField,
                     "Publish Year:", yearField,
-                    "Format: ", formatCombo,
-                    "Price ($): ", priceField,
+                    "Edition Count:", editionField,
+                    "Format:", formatCombo,
+                    "Price ($):", priceField,
                     "Category:", categoryCombo
             };
 
@@ -1742,18 +1732,19 @@ public class LoginWindow extends JFrame {
                         titleField.getText().trim(),
                         authorField.getText().trim(),
                         yearField.getText().trim(),
+                        editionField.getText().trim(),
                         formatCombo.getSelectedItem(),
-                        priceField.getText().trim(),
-//                        "N/A",
-                        (String) categoryCombo.getSelectedItem()
+                        "$" + priceField.getText().trim(),
+                        categoryCombo.getSelectedItem()
                 };
                 allBooksList.add(newBook);
                 model.addRow(newBook);
+
+                JOptionPane.showMessageDialog(panel, "Book added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
-        // Edit button with category
-        // Edit button with category - FIXED VERSION
+        // Edit button
         editBtn.addActionListener(e -> {
             int selectedRow = booksTable.getSelectedRow();
             if (selectedRow == -1) {
@@ -1763,7 +1754,6 @@ public class LoginWindow extends JFrame {
 
             int modelRow = booksTable.convertRowIndexToModel(selectedRow);
 
-            // Check if the model row is valid
             if (modelRow < 0 || modelRow >= model.getRowCount()) {
                 JOptionPane.showMessageDialog(null, "Invalid row selection.");
                 return;
@@ -1775,18 +1765,25 @@ public class LoginWindow extends JFrame {
             String currentEditions = (String) model.getValueAt(modelRow, 3);
             String currentFormat = (String) model.getValueAt(modelRow, 4);
             String currentPrice = (String) model.getValueAt(modelRow, 5);
-            String currentCategory = (String) model.getValueAt(modelRow, 6); // Index 4 is category
+            String currentCategory = (String) model.getValueAt(modelRow, 6);
+
+            // Remove $ sign if present
+            if (currentPrice.startsWith("$")) {
+                currentPrice = currentPrice.substring(1);
+            }
 
             JTextField titleField = new JTextField(currentTitle);
             JTextField authorField = new JTextField(currentAuthor);
             JTextField yearField = new JTextField(currentYear);
+            JTextField editionField = new JTextField(currentEditions);
             JTextField priceField = new JTextField(currentPrice);
 
             JComboBox<String> formatCombo = new JComboBox<>();
-            formatCombo.addItem("Paper");
+            formatCombo.addItem("Paperback");
             formatCombo.addItem("Hardcover");
             formatCombo.addItem("E-Book");
             formatCombo.addItem("Audiobook");
+            formatCombo.setSelectedItem(currentFormat);
 
             JComboBox<String> categoryCombo = new JComboBox<>();
             categoryCombo.addItem("Fiction");
@@ -1805,8 +1802,9 @@ public class LoginWindow extends JFrame {
                     "Title:", titleField,
                     "Author:", authorField,
                     "Year:", yearField,
-                    "Format: ", formatCombo,
-                    "Price ($): ", priceField,
+                    "Edition Count:", editionField,
+                    "Format:", formatCombo,
+                    "Price ($):", priceField,
                     "Category:", categoryCombo
             };
 
@@ -1814,26 +1812,23 @@ public class LoginWindow extends JFrame {
                     JOptionPane.OK_CANCEL_OPTION);
 
             if (result == JOptionPane.OK_OPTION) {
-                // Update the model (not the view directly)
                 model.setValueAt(titleField.getText(), modelRow, 0);
                 model.setValueAt(authorField.getText(), modelRow, 1);
                 model.setValueAt(yearField.getText(), modelRow, 2);
-
+                model.setValueAt(editionField.getText(), modelRow, 3);
                 model.setValueAt(formatCombo.getSelectedItem(), modelRow, 4);
-                model.setValueAt(priceField.getText(), modelRow, 5);
+                model.setValueAt("$" + priceField.getText(), modelRow, 5);
+                model.setValueAt(categoryCombo.getSelectedItem(), modelRow, 6);
 
-                model.setValueAt((String) categoryCombo.getSelectedItem(), modelRow, 6);
-
-                // Update the stored list if it exists and matches
+                // Update the stored list
                 if (modelRow < allBooksList.size()) {
                     allBooksList.set(modelRow, new Object[]{
                             titleField.getText(),
                             authorField.getText(),
                             yearField.getText(),
-                            currentEditions,
+                            editionField.getText(),
                             formatCombo.getSelectedItem(),
-                            priceField.getText(),
-                            model.getValueAt(modelRow, 3), // Keep existing edition count
+                            "$" + priceField.getText(),
                             categoryCombo.getSelectedItem()
                     });
                 }
@@ -1842,7 +1837,7 @@ public class LoginWindow extends JFrame {
             }
         });
 
-        //delete button logic
+        // Delete button
         deleteBtn.addActionListener(e -> {
             int selectedRow = booksTable.getSelectedRow();
 
@@ -1859,7 +1854,13 @@ public class LoginWindow extends JFrame {
             );
 
             if (confirm == JOptionPane.YES_OPTION) {
-                model.removeRow(selectedRow);
+                int modelRow = booksTable.convertRowIndexToModel(selectedRow);
+                if (modelRow < allBooksList.size()) {
+                    allBooksList.remove(modelRow);
+                }
+                model.removeRow(modelRow);
+
+                JOptionPane.showMessageDialog(panel, "Book deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
@@ -1875,8 +1876,9 @@ public class LoginWindow extends JFrame {
         booksTable.setGridColor(new Color(230,220,210));
         booksTable.setSelectionBackground(new Color(156,165,118));
         booksTable.setSelectionForeground(Color.WHITE);
+        booksTable.setAutoCreateRowSorter(true); // Enable sorting
 
-        // Add right-click context menu for quick actions
+        // Right-click context menu
         JPopupMenu contextMenu = new JPopupMenu();
         JMenuItem deleteItem = new JMenuItem("Delete");
         JMenuItem editItem = new JMenuItem("Edit");
@@ -1887,7 +1889,8 @@ public class LoginWindow extends JFrame {
         copyTitleItem.addActionListener(e -> {
             int row = booksTable.getSelectedRow();
             if (row != -1) {
-                String title = (String) model.getValueAt(row, 0);
+                int modelRow = booksTable.convertRowIndexToModel(row);
+                String title = (String) model.getValueAt(modelRow, 0);
                 java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
                         .setContents(new java.awt.datatransfer.StringSelection(title), null);
                 JOptionPane.showMessageDialog(panel, "Title copied to clipboard!");
@@ -1903,15 +1906,19 @@ public class LoginWindow extends JFrame {
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger()) {
                     int row = booksTable.rowAtPoint(e.getPoint());
-                    booksTable.setRowSelectionInterval(row, row);
-                    contextMenu.show(booksTable, e.getX(), e.getY());
+                    if (row != -1) {
+                        booksTable.setRowSelectionInterval(row, row);
+                        contextMenu.show(booksTable, e.getX(), e.getY());
+                    }
                 }
             }
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger()) {
                     int row = booksTable.rowAtPoint(e.getPoint());
-                    booksTable.setRowSelectionInterval(row, row);
-                    contextMenu.show(booksTable, e.getX(), e.getY());
+                    if (row != -1) {
+                        booksTable.setRowSelectionInterval(row, row);
+                        contextMenu.show(booksTable, e.getX(), e.getY());
+                    }
                 }
             }
         });
