@@ -1,24 +1,21 @@
 # Snow — Library Catalogue System
 
 
----
+
 **Team:** Zoha · Suha · Seline · Zainab · Ilakkiyan
 
----
 
 ## Overview
 
 Snow is a desktop library catalogue application that allows users to browse, search, and borrow books. Book data is fetched in real time from the Open Library API. The application has two access levels, 
 a user dashboard for browsing and borrowing, and an admin dashboard for managing the catalogue.
 
----
 
 ## Requirements
 
 - Java JDK 17 or later
 - `gson-2.10.1.jar` (included in `UI/lib/`)
 
----
 
 ## Running the Application
 
@@ -105,7 +102,6 @@ Snow_Co/
 └── README.md
 ```
 
----
 
 ## API
 
@@ -117,7 +113,6 @@ All book data comes from the [Open Library API](https://openlibrary.org/develope
 | `/works/[id].json` | Book summary in the detail dialog |
 | `covers.openlibrary.org/b/id/[id]-L.jpg` | Cover images |
 
----
 
 ## Technical Notes for Future Developers
 
