@@ -3,7 +3,6 @@
 **Team:**  Zoha · Suha · Seline · Zainab · Ilakkiyan
 
 
-
 ## Overview
 
 Snow is a desktop library catalogue application that allows users to browse, search, and borrow books. Book data is fetched in real time from the Open Library API. The application has two access levels — a user dashboard for browsing and borrowing, and an admin dashboard for managing the catalogue.
@@ -11,13 +10,13 @@ Snow is a desktop library catalogue application that allows users to browse, sea
 
 ## What We Built
 
-Over the course of the project we added the following features:
+Over the course of the project, we added the following main features:
 
 - **Book Detail Dialog** — clicking any book card opens a popup showing the full title, author, genre, a live summary, and an estimated price, all fetched from the Open Library API
 - **Live Search with Autocomplete** — the search bar suggests results as you type using a debounced API call, displayed as a dropdown
-- **Async Cover Image Loading** — book cover images load in the background so the UI never freezes
+- **Async Cover Image Loading** — book cover images load in the background, so the UI never freezes
 - **Borrow & Return System** — users can borrow available books and return them, with a dedicated Currently Borrowed section that updates in real time
-- **Admin Book Management** — admins can add, edit, and delete books from the catalogue with full form dialogs and a right-click context menu
+- **Admin Book Management** — admins can add, edit, and delete books from the catalog with full form dialogs and a right-click context menu
 
 ## Running the Application
 
@@ -27,7 +26,7 @@ Make sure the following are installed on your system:
 - Git
 - Gson Library (`gson-2.10.1.jar` included in the `lib` folder)
 
-### 2. Developer Onboarding: How to Compile, Test, and Run
+### 2. How to Compile, Test, and Run
 
 **For Windows Users**
 1. Open Command Prompt or PowerShell and navigate to the root directory of the project (`Snow_Co`)
@@ -72,7 +71,7 @@ If the build is successful, the Login Window will open automatically. Log in usi
 
 ### User Dashboard
 - Browse books by genre using category buttons
-- Search with live autocomplete suggestions (triggers after 3 characters)
+- Search with live autocomplete suggestions 
 - Click any book card to view its title, author, summary, and estimated price
 - Borrow and return books — borrowed books appear in a dedicated section
 - Paginated results with a Load More button
