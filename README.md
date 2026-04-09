@@ -137,7 +137,7 @@ All book data comes from the [Open Library API](https://openlibrary.org/develope
 
 ---
 
-## Technical Notes for Future Developers
+## Technical Notes
 
 ### Navigation
 
