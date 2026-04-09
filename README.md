@@ -1,38 +1,64 @@
 # Snow — Library Catalogue System
 
+**Team:**  Zoha · Suha · Seline · Zainab · Ilakkiyan
 
-
-**Team:** Zoha · Suha · Seline · Zainab · Ilakkiyan
 
 
 ## Overview
 
-Snow is a desktop library catalogue application that allows users to browse, search, and borrow books. Book data is fetched in real time from the Open Library API. The application has two access levels, 
-a user dashboard for browsing and borrowing, and an admin dashboard for managing the catalogue.
+Snow is a desktop library catalogue application that allows users to browse, search, and borrow books. Book data is fetched in real time from the Open Library API. The application has two access levels — a user dashboard for browsing and borrowing, and an admin dashboard for managing the catalogue.
 
 
-## Requirements
+## What We Built
 
-- Java JDK 17 or later
-- `gson-2.10.1.jar` (included in `UI/lib/`)
+Over the course of the project we added the following features:
 
+- **Book Detail Dialog** — clicking any book card opens a popup showing the full title, author, genre, a live summary, and an estimated price, all fetched from the Open Library API
+- **Live Search with Autocomplete** — the search bar suggests results as you type using a debounced API call, displayed as a dropdown
+- **Async Cover Image Loading** — book cover images load in the background so the UI never freezes
+- **Borrow & Return System** — users can borrow available books and return them, with a dedicated Currently Borrowed section that updates in real time
+- **Admin Book Management** — admins can add, edit, and delete books from the catalogue with full form dialogs and a right-click context menu
 
 ## Running the Application
 
-### Windows
-```
-.\run.bat
-```
+### 1. Requirements
+Make sure the following are installed on your system:
+- Java JDK 17 or later
+- Git
+- Gson Library (`gson-2.10.1.jar` included in the `lib` folder)
 
-### Mac / Linux
-```
-chmod +x run.sh
-./run.sh
-```
+### 2. Developer Onboarding: How to Compile, Test, and Run
 
-The script cleans old build files, compiles all source files, links dependencies, and launches the application.
+**For Windows Users**
+1. Open Command Prompt or PowerShell and navigate to the root directory of the project (`Snow_Co`)
+2. Execute the batch script to compile and launch:
+   ```
+   .\run.bat
+   ```
 
----
+**For Mac / Linux Users**
+1. Open your terminal and navigate to the root directory of the project (`Snow_Co`)
+2. Grant execution permissions to the shell script (only needed once):
+   ```
+   chmod +x run.sh
+   ```
+3. Execute the script to compile and launch:
+   ```
+   ./run.sh
+   ```
+
+**What these scripts do automatically:**
+
+| Step | Action |
+|------|--------|
+| Clean | Deletes any outdated `.class` files in the `target/classes` directory |
+| Link | Connects dependencies from `UI/lib/` (`gson.jar`, `junit.jar`) |
+| Compile | Compiles all source and test files from `UI/src/` into `target/` |
+| Launch | Starts the JVM and launches the `LoginWindow` application |
+
+### 3. Run the Application
+If the build is successful, the Login Window will open automatically. Log in using one of the test accounts below.
+
 
 ## Login Credentials
 
@@ -41,16 +67,15 @@ The script cleans old build files, compiles all source files, links dependencies
 | User | `user` | `password` |
 | Admin | `admin` | `password` |
 
----
 
 ## Features
 
 ### User Dashboard
-- Browse books by genre using category buttons.
-- Search with live autocomplete suggestions.
-- Click any book card to view its title, author, summary, and estimated price.
-- Borrow and return books, borrowed books appear in a dedicated section.
-- Paginated results with a Load More button.
+- Browse books by genre using category buttons
+- Search with live autocomplete suggestions (triggers after 3 characters)
+- Click any book card to view its title, author, summary, and estimated price
+- Borrow and return books — borrowed books appear in a dedicated section
+- Paginated results with a Load More button
 
 ### Admin Dashboard
 - Search the Open Library database and load results into a table
@@ -58,10 +83,8 @@ The script cleans old build files, compiles all source files, links dependencies
 - Right-click context menu for quick row actions
 - Sortable columns
 
----
 
 ## Demo
-- Demo of the working software:
 
 ### User Flow
 1. Log in with the user account
@@ -78,7 +101,6 @@ The script cleans old build files, compiles all source files, links dependencies
 4. Right-click any row for a shortcut menu
 5. Click any column header to sort
 
----
 
 ## Project Structure
 
@@ -113,6 +135,7 @@ All book data comes from the [Open Library API](https://openlibrary.org/develope
 | `/works/[id].json` | Book summary in the detail dialog |
 | `covers.openlibrary.org/b/id/[id]-L.jpg` | Cover images |
 
+---
 
 ## Technical Notes for Future Developers
 
@@ -164,6 +187,7 @@ A `javax.swing.Timer` (500ms) debounces the search field so the API is only call
 The admin table uses `DefaultTableModel` with a parallel `List<Object[]> allBooksList` for filtering. Always use `booksTable.convertRowIndexToModel(selectedRow)` when editing or deleting — sorting changes the view index but not the model index.
 
 ### Color Palette
+
 Colors are redefined locally in each method. To clean this up, extract them as constants at the top of `LoginWindow`:
 
 ```java
@@ -176,5 +200,5 @@ static final Color MOSS       = new Color(110, 120, 90);
 static final Color TERRACOTTA = new Color(190, 120, 90);
 ```
 
----
 
+*This README was written with some assistance of AI for formatting. *
