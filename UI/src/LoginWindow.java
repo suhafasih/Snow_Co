@@ -14,14 +14,14 @@ import java.awt.image.BufferedImage;
 
 
 public class LoginWindow extends JFrame {
-    private JTextField usernameField;
-    private JPasswordField passwordField;
+    public JTextField usernameField;
+    public JPasswordField passwordField;
     private JButton loginButton;
     private JButton logoutButton;
-    private JLabel statusLabel;
-    private boolean isLoggedIn = false;
-    private String currentUser = "";
-    private String currentUserRole = "";
+    public JLabel statusLabel;
+    public boolean isLoggedIn = false;
+    public String currentUser = "";
+    public String currentUserRole = "";
     private JTable booksTable;
     private java.util.List<String[]> borrowedBooks = new java.util.ArrayList<>(); // to refresh UI
     private JLabel countBadge;
@@ -30,11 +30,11 @@ public class LoginWindow extends JFrame {
     private final int BOOKS_PER_PAGE = 8;
 
     // Dashboard panels
-    private JPanel mainPanel;
+    public JPanel mainPanel;
     private JPanel loginPanel;
     private JPanel adminDashboard;
     private JPanel userDashboard;
-    private CardLayout cardLayout;
+    public CardLayout cardLayout;
     private JPanel borrowedGridPanel;
     private JPanel allBooksGrid;
     private java.util.List<Object[]> allBooksList = new java.util.ArrayList<>();
@@ -2054,7 +2054,7 @@ public class LoginWindow extends JFrame {
         passwordField.addActionListener(e -> performLogin());
     }
 
-    private void performLogin() {
+    public void performLogin() {
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
 
@@ -2129,7 +2129,7 @@ public class LoginWindow extends JFrame {
         }
     }
 
-    private void performLogout() {
+    public void performLogout() {
         isLoggedIn = false;
         currentUser = "";
         currentUserRole = "";
