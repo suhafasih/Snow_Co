@@ -1,22 +1,27 @@
-# Snow — Library Catalogue System
+# Snow&Co - Library Catalogue System
 
-**Team:**  Zoha · Suha · Seline · Zainab · Ilakkiyan
-
+### **Team:**
+- **Project Manager**: Zoha Murtuza
+- **Technical Manager**: Ngoc Kieu Minh Do
+- **Front-End Lead**: Zainab Sohail
+- **Back-End Lead**: Ilakkiyan Kuganendra
+- **Software Quality Lead** : Suha Fasih
+- **Developers**: All
 
 ## Overview
 
-Snow is a desktop library catalogue application that allows users to browse, search, and borrow books. Book data is fetched in real time from the Open Library API. The application has two access levels — a user dashboard for browsing and borrowing, and an admin dashboard for managing the catalogue.
+Snow is a desktop library catalogue application that allows users to browse, search, and borrow books. Book data is fetched in real time from the Open Library API. The application has two access levels, a user dashboard for browsing and borrowing, and an admin dashboard for managing the catalogue.
 
 
 ## What We Built
 
 Over the course of the project, we added the following main features:
 
-- **Book Detail Dialog** — clicking any book card opens a popup showing the full title, author, genre, a live summary, and an estimated price, all fetched from the Open Library API
-- **Live Search with Autocomplete** — the search bar suggests results as you type using a debounced API call, displayed as a dropdown
-- **Async Cover Image Loading** — book cover images load in the background, so the UI never freezes
-- **Borrow & Return System** — users can borrow available books and return them, with a dedicated Currently Borrowed section that updates in real time
-- **Admin Book Management** — admins can add, edit, and delete books from the catalog with full form dialogs and a right-click context menu
+- **Book Detail Dialog** - clicking any book card opens a popup showing the full title, author, genre, a live summary, and an estimated price, all fetched from the Open Library API
+- **Live Search with Autocomplete** - the search bar suggests results as you type using a debounced API call, displayed as a dropdown
+- **Async Cover Image Loading** - book cover images load in the background, so the UI never freezes
+- **Borrow & Return System** - users can borrow available books and return them, with a dedicated Currently Borrowed section that updates in real time
+- **Admin Book Management** - admins can add, edit, and delete books from the catalog with full form dialogs and a right-click context menu
 
 ## Running the Application
 
@@ -85,6 +90,8 @@ If the build is successful, the Login Window will open automatically. Log in usi
 
 ## Demo
 
+
+
 ### User Flow
 1. Log in with the user account
 2. Click a genre button to load books in that category, or type in the search bar
@@ -109,7 +116,7 @@ Snow_Co/
 │   ├── lib/                   # gson-2.10.1.jar, junit.jar
 │   ├── resources/             # libcat2.png (login background)
 │   └── src/
-│       ├── LoginWindow.java   # all UI — login, dashboards, dialogs
+│       ├── LoginWindow.java   # all UI - login, dashboards, dialogs
 │       ├── API.java           # Open Library API calls
 │       ├── RoundedButton.java
 │       ├── RoundedPanel.java
@@ -156,7 +163,7 @@ new SwingWorker<JsonArray, Void>() {
         return API.searchBooks(query); // background thread
     }
     protected void done() {
-        JsonArray results = get(); // back on EDT — safe to update UI
+        JsonArray results = get(); 
     }
 }.execute();
 ```
@@ -179,7 +186,8 @@ Borrowed books are stored separately as `List<String[]>` with title, author, and
 
 ### Autocomplete
 
-A `javax.swing.Timer` (500ms) debounces the search field so the API is only called after the user stops typing. The suggestion dropdown uses `JPopupMenu` with `setFocusable(false)` — this is required to prevent the popup from stealing focus away from the text field.
+A `javax.swing.Timer` (500ms) debounces the search field so the API is only called after the user stops typing. 
+The suggestion dropdown uses `JPopupMenu` with `setFocusable(false)` - this is required to prevent the popup from stealing focus away from the text field.
 
 ### Admin Table
 
@@ -200,4 +208,10 @@ static final Color TERRACOTTA = new Color(190, 120, 90);
 ```
 
 
-*This README was written with some assistance of AI for formatting. *
+## AI Disclosure:
+
+This project was developed by the team listed above. AI tools (such as ChatGPT) were used in a limited and 
+supportive capacity to assist with debugging, code refinement, and understanding concepts (e.g., threading, UI behavior, and API integration).
+
+All core design decisions, feature implementations, and final code were written, reviewed, and validated by the team members. 
+
