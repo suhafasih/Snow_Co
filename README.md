@@ -207,6 +207,11 @@ static final Color MOSS       = new Color(110, 120, 90);
 static final Color TERRACOTTA = new Color(190, 120, 90);
 ```
 
+## Areas for Improvement
+
+- **Code organization** — most of the UI logic lives in a single file (`LoginWindow.java`). Splitting it into separate classes per panel would make the codebase easier to navigate and maintain.
+- **Code reusability** — several components (color definitions, card layouts, button styles) are repeated across methods and could be extracted into shared utilities or constants.
+- **UI polish** — the interface is functional and stylish but could benefit from smoother animations, transitions, and a more modern visual design.
 
 ## AI Disclosure:
 
