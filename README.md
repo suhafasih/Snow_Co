@@ -78,7 +78,7 @@ If the build is successful, the Login Window will open automatically. Log in usi
 - Browse books by genre using category buttons
 - Search with live autocomplete suggestions 
 - Click any book card to view its title, author, summary, and estimated price
-- Borrow and return books — borrowed books appear in a dedicated section
+- Borrow and return books - borrowed books appear in a dedicated section
 - Paginated results with a Load More button
 
 ### Admin Dashboard
@@ -95,8 +95,8 @@ If the build is successful, the Login Window will open automatically. Log in usi
 ### User Flow
 1. Log in with the user account
 2. Click a genre button to load books in that category, or type in the search bar
-3. Click any book card to open the detail view — summary and price load automatically
-4. Click **Borrow** on any available card — it moves to the Currently Borrowed section
+3. Click any book card to open the detail view, summary and price load automatically
+4. Click **Borrow** on any available card, it moves to the Currently Borrowed section
 5. Click **Return Book** to return it and restore its availability
 6. Click **Load More Books** to load the next page of results
 
@@ -187,11 +187,11 @@ Borrowed books are stored separately as `List<String[]>` with title, author, and
 ### Autocomplete
 
 A `javax.swing.Timer` (500ms) debounces the search field so the API is only called after the user stops typing. 
-The suggestion dropdown uses `JPopupMenu` with `setFocusable(false)` - this is required to prevent the popup from stealing focus away from the text field.
+The suggestion dropdown uses `JPopupMenu` with `setFocusable(false)`, which is required to prevent the popup from stealing focus from the text field.
 
 ### Admin Table
 
-The admin table uses `DefaultTableModel` with a parallel `List<Object[]> allBooksList` for filtering. Always use `booksTable.convertRowIndexToModel(selectedRow)` when editing or deleting — sorting changes the view index but not the model index.
+The admin table uses `DefaultTableModel` with a parallel `List<Object[]> allBooksList` for filtering. Always use `booksTable.convertRowIndexToModel(selectedRow)` when editing or deleting; sorting changes the view index but not the model index.
 
 ### Color Palette
 
@@ -210,8 +210,7 @@ static final Color TERRACOTTA = new Color(190, 120, 90);
 
 ## AI Disclosure:
 
-This project was developed by the team listed above. AI tools (such as ChatGPT) were used in a limited and 
-supportive capacity to assist with debugging, code refinement, and understanding concepts (e.g., threading, UI behavior, and API integration).
+This project was developed by the team listed above. AI was used in a limited capacity to assist with debugging, code refinement, and understanding some concepts (e.g., threading, UI behavior, and API integration).
 
-All core design decisions, feature implementations, and final code were written, reviewed, and validated by the team members. 
+All the core design decisions, feature implementations, and final code were written, reviewed, and validated by the team members. 
 
