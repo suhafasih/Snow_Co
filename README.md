@@ -85,7 +85,6 @@ If the build is successful, the Login Window will open automatically. Log in usi
 - Search the Open Library database and load results into a table
 - Add, edit, and delete books via form dialogs
 - Right-click context menu for quick row actions
-- Sortable columns
 
 
 ## Demo
