@@ -12,56 +12,116 @@ import javax.imageio.ImageIO;
 import javax.swing.table.DefaultTableModel;
 import java.awt.image.BufferedImage;
 
-
+/**
+ *  Main application UI for the Library System
+ *
+ *  Handles:
+ *  - Login System (User/Admin)
+ *  - Role-based dashboard (User/Admin)
+ *  - display of Books and borrowing logic
+ */
 public class LoginWindow extends JFrame {
+
+    // Login fields (are made public for testing using reflection)
     public JTextField usernameField;
     public JPasswordField passwordField;
+
+    // Buttons for login and logout
     private JButton loginButton;
     private JButton logoutButton;
+
+    // Status label for login feedback
     public JLabel statusLabel;
+
+    // Login status when App is opened
     public boolean isLoggedIn = false;
     public String currentUser = "";
     public String currentUserRole = "";
+
+    // Table to display books
     private JTable booksTable;
+
+    // Borrowed books stored in here (used to refresh UI when User dashboard is open)
     private java.util.List<String[]> borrowedBooks = new java.util.ArrayList<>(); // to refresh UI
+
+    // Show number of books that are borrowed
     private JLabel countBadge;
+
+    // Books fetched from API stored here
     private java.util.List<String[]> allBooks = new java.util.ArrayList<>();
+
+    //
     private int currentPage = 0;
     private final int BOOKS_PER_PAGE = 8;
 
     // Dashboard panels
+
+    // Primary UI panels
     public JPanel mainPanel;
     private JPanel loginPanel;
     private JPanel adminDashboard;
     private JPanel userDashboard;
+
+
+    // Cardlayout for switching between screens
     public CardLayout cardLayout;
+
+    // Display Books panels that are in grid format
     private JPanel borrowedGridPanel;
     private JPanel allBooksGrid;
+
+    // Alternative Structure for storing book data
     private java.util.List<Object[]> allBooksList = new java.util.ArrayList<>();
 
+    /**
+     * Constructor: intializes the main window and structure of the UI
+     */
     public LoginWindow() {
+
+        // Setup for window
         setTitle("Library Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900,600);
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(null); // Center window
 
+        // Cardlayout Initialize for switching views
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
+        // UI sections created
         createLoginPanel();
         createAdminDashboard();
         createUserDashboard();
 
+        //Panels added to CardLayout with identifiers
         mainPanel.add(loginPanel, "LOGIN");
         mainPanel.add(adminDashboard, "ADMIN_DASHBOARD");
         mainPanel.add(userDashboard, "USER_DASHBOARD");
 
+        // Main panel added to frame
         add(mainPanel);
 
+        // Menu bar setup
         setupMenuBar();
     }
+
+    /**
+     *  Model display dialog about a selected book with detailed information
+     *
+     * Features:
+     * - Loads and displays cover of Book
+     * - Fetches summary and an estimated price from the Open Library API
+     * - Styled UI is use for a consistent theme for the app
+     *
+     * @param title Title of the book that is displayed
+     * @param author Author of the book that is displayed
+     * @param coverUrl Cover book image URL (it can be null or empty)
+     * @param category Category/genre of the book (this is optional and defaults to "General")
+     */
 //    /-------------------------------------------------------------------------- to show details + price too
     private void showBookDetailDialog(String title, String author, String coverUrl, String category) {
+
+        // Color pallete (consistent theme across the app)
         Color cream     = new Color(245, 240, 230);
         Color sage      = new Color(156, 165, 118);
         Color warmBrown = new Color(140, 100, 85);
@@ -69,12 +129,14 @@ public class LoginWindow extends JFrame {
         Color sand      = new Color(220, 210, 190);
         Color moss      = new Color(110, 120, 90);
 
+        // Model dialog created
         JDialog dialog = new JDialog(this, "Book Details", true);
         dialog.setSize(680, 600);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
         dialog.getContentPane().setBackground(cream);
 
+        // Header section
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(sage);
         header.setBorder(BorderFactory.createEmptyBorder(18, 24, 18, 24));
@@ -82,6 +144,8 @@ public class LoginWindow extends JFrame {
         headerTitle.setFont(new Font("Georgia", Font.BOLD, 22));
         headerTitle.setForeground(Color.WHITE);
         JButton closeBtn = new RoundedButton(" X Close");
+
+        // Close button (user clicks off the section)
         closeBtn.setBackground(warmBrown);
         closeBtn.setForeground(Color.WHITE);
         closeBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -91,10 +155,12 @@ public class LoginWindow extends JFrame {
         header.add(closeBtn, BorderLayout.EAST);
         dialog.add(header, BorderLayout.NORTH);
 
+        // Contains main content
         JPanel content = new JPanel(new BorderLayout(20, 0));
         content.setBackground(cream);
         content.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
 
+        // Section for cover image
         JPanel coverPanel = new JPanel(new BorderLayout());
         coverPanel.setBackground(cream);
         coverPanel.setPreferredSize(new Dimension(165, 230));
@@ -106,6 +172,8 @@ public class LoginWindow extends JFrame {
         coverLabel.setBackground(sand);
         coverLabel.setBorder(BorderFactory.createLineBorder(sand, 2));
         coverPanel.add(coverLabel, BorderLayout.CENTER);
+
+        // Asyncronoize loading of image (prevents the UI to freeze)
         if (coverUrl != null && !coverUrl.isEmpty()) {
             new SwingWorker<ImageIcon, Void>() {
                 protected ImageIcon doInBackground() throws Exception {
@@ -122,20 +190,24 @@ public class LoginWindow extends JFrame {
         }
         content.add(coverPanel, BorderLayout.WEST);
 
+        // Section for information (title, author, summary, price)
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(cream);
 
+        // Title
         JLabel titleLabel = new JLabel("<html><div style='width:320px'><b>" + title + "</b></div></html>");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 20));
         titleLabel.setForeground(darkBrown);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Author
         JLabel authorLabel = new JLabel("by " + author);
         authorLabel.setFont(new Font("Georgia", Font.ITALIC, 15));
         authorLabel.setForeground(warmBrown);
         authorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Category badge
         JPanel catBadge = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         catBadge.setBackground(cream);
         catBadge.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -148,6 +220,7 @@ public class LoginWindow extends JFrame {
         catLabel.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
         catBadge.add(catLabel);
 
+        // Summary area (which is also scrollable)
         JLabel summaryHeader = new JLabel("Summary");
         summaryHeader.setFont(new Font("Georgia", Font.BOLD, 14));
         summaryHeader.setForeground(darkBrown);
@@ -166,6 +239,7 @@ public class LoginWindow extends JFrame {
         summaryScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 200));
         summaryScroll.setPreferredSize(new Dimension(Integer.MAX_VALUE, 130));
 
+        // Price label
         JLabel priceHeader = new JLabel("Estimated Price");
         priceHeader.setFont(new Font("Georgia", Font.BOLD, 14));
         priceHeader.setForeground(darkBrown);
@@ -176,24 +250,33 @@ public class LoginWindow extends JFrame {
         priceLabel.setForeground(moss);
         priceLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        // Asyncronize call from API (OpenLibrary)
         new SwingWorker<String[], Void>() {
             protected String[] doInBackground() {
                 String summary = "No summary available for this book.";
                 String price   = "Not available";
                 try {
+                    // API Call search
                     String encoded = java.net.URLEncoder.encode(title + " " + author, "UTF-8");
                     URL searchUrl = new URL("https://openlibrary.org/search.json?q=" + encoded + "&limit=1");
+
+                    // HTTP Connection
                     java.net.HttpURLConnection conn = (java.net.HttpURLConnection) searchUrl.openConnection();
                     conn.setRequestProperty("User-Agent", "LibraryCatalogueApp/1.0");
                     conn.setConnectTimeout(8000); conn.setReadTimeout(8000);
+
+                    // Reads the respone
                     java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
                     while ((line = reader.readLine()) != null) sb.append(line);
                     reader.close();
 
+                    // JSON Parsing
                     JsonObject searchResult = JsonParser.parseString(sb.toString()).getAsJsonObject();
                     JsonArray docs = searchResult.getAsJsonArray("docs");
+
+                    // Extracts the summary and estimated price
                     if (docs != null && docs.size() > 0) {
                         JsonObject doc = docs.get(0).getAsJsonObject();
                         if (doc.has("key")) {
@@ -236,6 +319,7 @@ public class LoginWindow extends JFrame {
             }
         }.execute();
 
+        // Components added to panel
         infoPanel.add(titleLabel);        infoPanel.add(Box.createVerticalStrut(6));
         infoPanel.add(authorLabel);       infoPanel.add(Box.createVerticalStrut(10));
         infoPanel.add(catBadge);          infoPanel.add(Box.createVerticalStrut(18));
@@ -249,7 +333,14 @@ public class LoginWindow extends JFrame {
         dialog.setVisible(true);
     }
 
-
+    /**
+     * Creates the login screen UI
+     *
+     * Includes:
+     * - Background image
+     * - Styled input fields
+     * - Button for Login
+     */
     private void createLoginPanel() {
 
         // Main panel with background image
@@ -334,6 +425,7 @@ public class LoginWindow extends JFrame {
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Assembing layout
         overlay.add(formPanel);
         overlay.add(Box.createVerticalStrut(20));
         overlay.add(loginButton);
@@ -343,9 +435,18 @@ public class LoginWindow extends JFrame {
 
         loginPanel.add(overlay);
 
+        // Event listeners attached
         setupActionListeners();
     }
 
+    /**
+     * Creates the admin dashboard UI
+     *
+     * Includes:
+     * - Header with logout button
+     * - Action cards
+     * - Panel for book management
+     */
     private void createAdminDashboard() {
 
         adminDashboard = new JPanel(new BorderLayout());
@@ -359,6 +460,7 @@ public class LoginWindow extends JFrame {
 
         adminDashboard.setBackground(cream);
 
+        // Header
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(sage);
         header.setBorder(BorderFactory.createEmptyBorder(20,30,20,30));
@@ -379,6 +481,7 @@ public class LoginWindow extends JFrame {
 
         adminDashboard.add(header, BorderLayout.NORTH);
 
+        // Content section
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(cream);
@@ -392,17 +495,20 @@ public class LoginWindow extends JFrame {
         content.add(sectionTitle);
         content.add(Box.createVerticalStrut(20));
 
+        // Admin actions
         JPanel actionGrid = createAdminActionCards(sage,warmBrown,darkBrown,sand);
         actionGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         content.add(actionGrid);
         content.add(Box.createVerticalStrut(30));
 
+        // Book management
         JPanel booksPanel = createBooksManagementPanel();
         booksPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         content.add(booksPanel);
 
+        // Scroll component
         JScrollPane scroll = new JScrollPane(content);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
@@ -410,6 +516,15 @@ public class LoginWindow extends JFrame {
         adminDashboard.add(scroll, BorderLayout.CENTER);
     }
 
+    /**
+     * Creates horizontal grid of admin action cards
+     *
+     * @param sage Primary accent color
+     * @param warmBrown
+     * @param darkBrown
+     * @param sand
+     * @return
+     */
     private JPanel createAdminActionCards(Color sage, Color warmBrown, Color darkBrown, Color sand) {
 
         JPanel grid = new JPanel(new GridLayout(1,4,5,0));
@@ -1311,7 +1426,7 @@ public class LoginWindow extends JFrame {
                                 JsonArray subjects = book.getAsJsonArray("subject");
                                 boolean matchFound = false;
                                 for (int s = 0; s < Math.min(subjects.size(), 5); s++) {
-                                    String subject = subjects.get(0).getAsString().toLowerCase();
+                                    String subject = subjects.get(s).getAsString().toLowerCase();
                                     if (subject.contains("fiction")) category = "Fiction";
                                     else if (subject.contains("mystery")) category = "Mystery";
                                     else if (subject.contains("sci-fi") || subject.contains("science fiction")) category = "Sci-Fi";
@@ -2000,8 +2115,9 @@ public class LoginWindow extends JFrame {
                             if (book.has("subject")) {
                                 JsonArray subjects = book.getAsJsonArray("subject");
                                 boolean matchFound = false;
+                                System.out.println("Book: " + title + "| Subjects: " + subjects.toString());
                                 for (int s = 0; s < Math.min(subjects.size(), 5); s++) {
-                                    String subject = subjects.get(0).getAsString().toLowerCase();
+                                    String subject = subjects.get(s).getAsString().toLowerCase();
                                     if (subject.contains("fiction")) category = "Fiction";
                                     else if (subject.contains("mystery")) category = "Mystery";
                                     else if (subject.contains("sci-fi") || subject.contains("science fiction")) category = "Sci-Fi";

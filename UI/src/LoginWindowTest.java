@@ -7,20 +7,36 @@ import java.lang.reflect.Field;
 
 import com.google.gson.JsonArray;
 
+/**
+ * Unit tests for LoginWindow file and related functionality.
+ *
+ * It Covers:
+ * - Login behavior (admin, user, invalid)
+ * - Logout behavior
+ * - Integration of API (searchBooks)
+ * - Rendering of UI (RoundedPanel)
+ * - Testing Private methods by reflection
+ */
 public class LoginWindowTest {
 
     private LoginWindow window;
     private JTextField usernameField;
     private JPasswordField passwordField;
 
+    /**
+     * Before each test this is run
+     * It initializes LoginWindow and has access to private fields using reflection.
+     */
     @Before
     public void setUp() throws Exception {
         window = new LoginWindow();
 
+        // Accesses private username field
         Field userField = LoginWindow.class.getDeclaredField("usernameField");
         userField.setAccessible(true);
         usernameField = (JTextField) userField.get(window);
 
+        // Accesses private password field
         Field passField = LoginWindow.class.getDeclaredField("passwordField");
         passField.setAccessible(true);
         passwordField = (JPasswordField) passField.get(window);
@@ -59,9 +75,13 @@ public class LoginWindowTest {
 
         window.performLogin();
 
+        // Login should fail
         assertFalse(window.isLoggedIn);
+
+        // User reset should happen
         assertEquals("", window.currentUser);
 
+        // Password file being cleared should happen
         assertEquals("", new String(passwordField.getPassword()));
     }
 
@@ -105,6 +125,7 @@ public class LoginWindowTest {
         JsonArray result = API.searchBooks("asdkfjhasdkjfhakjsdfh");
 
         assertNotNull(result);
+        // Make sures that there is no crash if no results show
         assertTrue(result.size() == 0 || result.size() >= 0); // just ensure no crash
     }
 
@@ -137,6 +158,7 @@ public class LoginWindowTest {
 
         method.setAccessible(true);
 
+        // Methods are invoked with sample colors
         JPanel panel = (JPanel) method.invoke(
                 window,
                 new java.awt.Color(156,165,118),
@@ -145,6 +167,7 @@ public class LoginWindowTest {
                 new java.awt.Color(220,210,190)
         );
 
+        // Makes sure results are validated
         assertNotNull(panel);
         assertTrue(panel.getComponentCount() > 0);
     }
