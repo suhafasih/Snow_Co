@@ -91,6 +91,8 @@ If the build is successful, the Login Window will open automatically. Log in usi
 
 ![Demo](Demo_1.gif)
 
+(The blurriness is due to video conversion to a GIF, not UI design.)
+
 Full Demo link : [FULL DEMO](https://drive.google.com/file/d/1euqspFMc4J7-WVFaEJ4zW-E5mPfjfeMV/view?usp=drive_link)
 
 ---
