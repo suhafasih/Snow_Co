@@ -89,8 +89,11 @@ If the build is successful, the Login Window will open automatically. Log in usi
 
 ## Demo
 
+![Demo](Demo_1.gif)
 
+Full Demo link : [FULL DEMO](https://drive.google.com/file/d/1euqspFMc4J7-WVFaEJ4zW-E5mPfjfeMV/view?usp=drive_link)
 
+---
 ### User Flow
 1. Log in with the user account
 2. Click a genre button to load books in that category, or type in the search bar
@@ -208,9 +211,9 @@ static final Color TERRACOTTA = new Color(190, 120, 90);
 
 ## Areas for Improvement
 
-- **Code organization** — most of the UI logic lives in a single file (`LoginWindow.java`). Splitting it into separate classes per panel would make the codebase easier to navigate and maintain.
-- **Code reusability** — several components (color definitions, card layouts, button styles) are repeated across methods and could be extracted into shared utilities or constants.
-- **UI polish** — the interface is functional and stylish but could benefit from smoother animations, transitions, and a more modern visual design.
+- **Code organization** - most of the UI logic lives in a single file (`LoginWindow.java`). Splitting it into separate classes per panel would make the codebase easier to navigate and maintain.
+- **Code reusability** - several components (color definitions, card layouts, button styles) are repeated across methods and could be extracted into shared utilities or constants.
+- **UI polish** - the interface is functional and stylish but could benefit from smoother animations, transitions, and a more modern visual design.
 
 ## AI Disclosure:
 
