@@ -64,17 +64,39 @@ Make sure the following are installed on your system:
 If the build is successful, the Login Window will open automatically. Log in using one of the test accounts below.
 
 
-## Login Credentials
+## Getting Started: Login Credentials
 
 | Role | Username | Password |
 |------|----------|----------|
 | User | `user` | `password` |
 | Admin | `admin` | `password` |
 
-### For Library Users
-* **Finding Books:** Type a title, author, or genre into the search bar to see live autocomplete suggestions, or click the browse categories to filter the catalog instantly.
-* **Viewing Details:** Click on any book card to open a detailed view containing the book's full summary, cover art, and estimated market price.
-* **Borrowing & Returning:** Click the green **Borrow** button on any available book to add it to your "Currently Borrowed" shelf at the top of your dashboard. To return it, click the **Return Book** button on that shelf.
+
+### User Dashboard Guide
+
+The User Dashboard is your personal library hub, designed for discovering, borrowing, and managing your reading list.
+
+#### Finding Books
+* **Smart Search:** Start typing a title, author, or genre into the main search bar. The system will automatically provide a drop-down list of matches. Click any suggestion to immediately load that book.
+* **Browse Categories:** Use the browse categories above the search bar to filter the library grid instantly.
+* **Sorting:** Use the **Sort by** dropdown menu on the right side of the "All Books" section to organize the grid by Popularity, Title, Author, or Newest additions.
+
+#### Viewing Book Features & Pricing
+To learn more about a book, simply click on its card in the grid. This will open the Book Details window, which displays:
+* The cover art, full title, author, and category badge.
+* A fetched **Summary** of the book's plot.
+* An **Estimated Price** block, showing current market values for New and Used conditions (based on edition counts and formats).
+
+#### Borrowing Books
+1. Locate a book with a green **Available** status badge.
+2. Click the book card to open the details, or look at the bottom of the card on the main grid.
+3. Click the green **Borrow** button.
+4. The book will immediately move to your **Currently Borrowed** section at the top of your dashboard, and a due date will be assigned.
+
+#### Returning Books
+1. Locate the book in your **Currently Borrowed** top section.
+2. Click the terracotta-colored **Return Book** button on the book's card.
+3. The book will be removed from your account and returned to the "All Books" grid for others to enjoy.
 
 
 
