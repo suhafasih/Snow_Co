@@ -71,6 +71,12 @@ If the build is successful, the Login Window will open automatically. Log in usi
 | User | `user` | `password` |
 | Admin | `admin` | `password` |
 
+### For Library Users
+* **Finding Books:** Type a title, author, or genre into the search bar to see live autocomplete suggestions, or click the category pills to filter the catalog instantly.
+* **Viewing Details:** Click on any book card to open a detailed view containing the book's full summary, cover art, and estimated market price.
+* **Borrowing & Returning:** Click the green **Borrow** button on any available book to add it to your "Currently Borrowed" shelf at the top of your dashboard. To return it, click the **Return Book** button on that shelf.
+
+
 
 ## Features
 
