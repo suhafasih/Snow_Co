@@ -520,41 +520,66 @@ public class LoginWindow extends JFrame {
      * Creates horizontal grid of admin action cards
      *
      * @param sage Primary accent color
-     * @param warmBrown
-     * @param darkBrown
-     * @param sand
-     * @return
+     * @param warmBrown Secondary theme color
+     * @param darkBrown Text color
+     * @param sand Default border color
+     * @return JPanel containing admin action cards
      */
     private JPanel createAdminActionCards(Color sage, Color warmBrown, Color darkBrown, Color sand) {
 
+        // Grid Layout: 1 row, 4 columns
         JPanel grid = new JPanel(new GridLayout(1,4,5,0));
+
+        // App theme with matches the background
         grid.setBackground(new Color(245,240,230));
+
+        // Allows the grid to stretch horizontally but is limited in height
         grid.setMaximumSize(new Dimension(Integer.MAX_VALUE,80));
 
+        // Admin action cards added
         grid.add(createAdminCard("Manage Books",sage,darkBrown,sand));
         grid.add(createAdminCard("Manage Reviews",sage,darkBrown,sand));
 
         return grid;
     }
+
+    /**
+     * Creates individual admin action card with hover effect.
+     *
+     * @param title Text displayed on card
+     * @param sage  Color of hover border
+     * @param darkBrown Text color
+     * @param sand Default border color
+     * @return JPanel that is styled represented by a clickable card
+     */
     private JPanel createAdminCard(String title,Color sage,Color darkBrown,Color sand){
 
+        // Main card panel
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card,BoxLayout.Y_AXIS));
         card.setBackground(Color.WHITE);
+
+        // Default border with light outline and padding
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(sand,1),
                 BorderFactory.createEmptyBorder(20,20,20,20)
         ));
 
-
+        // Title label
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Georgia",Font.BOLD,16));
         titleLabel.setForeground(darkBrown);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Adding spacing and label
         card.add(Box.createVerticalStrut(10));
         card.add(titleLabel);
 
+        /**
+         * Hover effect for mouse:
+         * - On hover -> thicker, border colored
+         * - On exit -> reverted to default border
+         */
         card.addMouseListener(new MouseAdapter(){
             public void mouseEntered(MouseEvent e){
                 card.setBorder(BorderFactory.createCompoundBorder(
@@ -573,12 +598,27 @@ public class LoginWindow extends JFrame {
         return card;
     }
 
+    /**
+     * Custom JPanel that shows a background image display
+     *
+     * Tries to load an image using multiple schemes:
+     * 1. CLasspath (from resource file or packaged apps)
+     * 2. Direct file system path
+     * 3. Fallback paths (common directorties for projects)
+     */
     class BackgroundPanel extends JPanel {
 
+        // Loaded backgrounded image stored here
         private Image backgroundImage;
 
+        /**
+         * Constructor that loads image from given path.
+         * @param path Path to image (either relative or absolute)
+         */
         public BackgroundPanel(String path) {
             try {
+
+                // Attempt 1: Loading from classpath (best works with packaged app)
                 java.net.URL imageUrl = getClass().getResource(path);
 
                 if (imageUrl != null) {
@@ -587,6 +627,7 @@ public class LoginWindow extends JFrame {
                     return;
                 }
 
+                // Attempt 2: Loading from direct file system path
                 java.io.File file = new java.io.File(path);
                 if (file.exists()) {
                     System.out.println("Loaded from file system: " + file.getAbsolutePath());
@@ -594,6 +635,7 @@ public class LoginWindow extends JFrame {
                     return;
                 }
 
+                // Attempt 3: Loading from fallback paths (best for common project locations)
                 String[] fallbackPaths = {
                         "libcat2.png",
                         "UI/resources/libcat2.png",
@@ -610,13 +652,18 @@ public class LoginWindow extends JFrame {
                     }
                 }
 
+                // If none of the attempts work and fails
                 System.out.println("Image not found anywhere: " + path);
 
             } catch (Exception e) {
+                // Error printed if something goes wrong when image is loading
                 e.printStackTrace();
             }
         }
 
+        /**
+         * Background image is painted and scaled to fill in panel.
+         */
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
@@ -1051,9 +1098,20 @@ public class LoginWindow extends JFrame {
         userDashboard.add(scrollPane, BorderLayout.CENTER);
         updateBorrowedCount();
     }
+
+    /**
+     * Updates borrowed books count badge in UI
+     *
+     * Displays:
+     * - "1 book" for single item borrowed
+     * - count + " books" for multiple items borrowed
+     */
     private void updateBorrowedCount() {
+
+        // Gets total number of books borrowed
         int count = borrowedBooks.size();
 
+        // Handles single vs multiple display
         if (count == 1) {
             countBadge.setText("1 book");
         } else {
@@ -1061,17 +1119,31 @@ public class LoginWindow extends JFrame {
         }
     }
 
+    /**
+     * Creates grid panel that displays all current books that are borrowed.
+     *
+     * Each book is rendered as styled card by using createEarthyBookCard().
+     *
+     * @return JPanel that contains cards of borrowed books
+     */
     private JPanel createBorrowedBooksGrid() {
+
+        // Grid Layout: dynamic rows, 4 columns, cards have spacing between
         JPanel grid = new JPanel(new GridLayout(0, 4, 20, 20));
+
+        // Matches the applicaton background theme
         grid.setBackground(new Color(245, 240, 230));
 
+        // Grid is populated with cards of borrowed books
         for (String[] book : borrowedBooks) {
             grid.add(createEarthyBookCard(
                     book[0], // title
                     book[1], // author
                     book[2], // cover
-                    "Due in 7 days",
-                    "normal", "",
+                    "Due in 7 days", // due date placeholder
+                    "normal", "", // status + category
+
+                    // Colors for theme
                     new Color(156,165,118),
                     new Color(140,100,85),
                     new Color(80,60,50),
@@ -1084,18 +1156,40 @@ public class LoginWindow extends JFrame {
         return grid;
     }
 
+    /**
+     * Creates scrollable grid contatiner that carries book cards.
+     * Loads mock borrowed data or full library catalog based on application state.
+     *
+     * @param sage Primary color for theme
+     * @param warmBrown Secondary color for theme
+     * @param darkBrown Text color for headings
+     * @param sand Background color for place holders
+     * @param moss Color used for avaliable indicators
+     * @param terracotta Color used for borrowed indicators
+     * @param isBorrowed If true it loads the user's borrowed book
+     * @return JPanel which contains the grid of books format
+     */
     private JPanel createEarthyBooksGrid(Color sage, Color warmBrown, Color darkBrown, Color sand, Color moss, Color terracotta, boolean isBorrowed) {
+
+        // Grid layout 4 columns
         JPanel grid = new JPanel(new GridLayout(0, 4, 20, 20));
         grid.setBackground(new Color(245, 240, 230)); // cream
         grid.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         String[][] books;
+
+        // Show user's borrowed books library catalog
         if (isBorrowed) {
+
+            // Mock data for Currently Borrowed Books with due dates
             books = new String[][]{
                     {"The Silent Patient", "Alex Michaelides", "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg", "Due in 3 days", "high"},
                     {"Project Hail Mary", "Andy Weir", "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg", "Due tomorrow", "critical"}
             };
         } else {
+
+            // Mock data for All Books catalog section
+            // Entry consist of Title, Author, CoverURL, Status, Urgency(which is empty), Category
             books = new String[][]{
                     {"The Silent Patient", "Alex Michaelides", "https://covers.openlibrary.org/b/isbn/9781250301697-L.jpg", "Available", "", "Mystery"},
                     {"Project Hail Mary", "Andy Weir", "https://covers.openlibrary.org/b/isbn/9780593135204-L.jpg", "Available", "", "Sci-Fi"},
@@ -1108,6 +1202,7 @@ public class LoginWindow extends JFrame {
             };
         }
 
+        // Loop through data array and create individual card for every book
         for (String[] book : books) {
             grid.add(createEarthyBookCard(book[0], book[1], book[2], book[3], book.length > 4 ? book[4] : "", book.length > 5 ? book[5] : "",
                     sage, warmBrown, darkBrown, sand, moss, terracotta));
@@ -1116,6 +1211,35 @@ public class LoginWindow extends JFrame {
         return grid;
     }
 
+    /**
+     * Creates styled book card panel to look earth themed.
+     *
+     * Features:
+     * - Book cover displayed
+     * - Title, author, category shown
+     * - Dynamic status badge (when book is avaliable, due, checked out)
+     * - Borrow and Return botton for books
+     * - Hover effects and clickable card (opens up detail dialog for book)
+     *
+     * Behavior:
+     * - SwingWorker is used to load images without UI freezing
+     * - borrowedBooks list updates when borrowing/returning books
+     * - UI is dynamically updated (status, buttons, counts)
+     *
+     * @param title Title of book
+     * @param author Author of book
+     * @param coverUrl URL for book cover image
+     * @param status Avaliability status (e.g, "Due in 7 days", "Avaliable")
+     * @param urgency Level of urgency for due books
+     * @param category Genre/category of book
+     * @param sage Primary color for theme
+     * @param warmBrown Secondary color for text
+     * @param darkBrown Color of title
+     * @param sand Color for border/placeholder
+     * @param moss Color for accent (for hover/available)
+     * @param terracotta color for accent (for checked out/ return)
+     * @return JPanel representing a book card
+     */
     private JPanel createEarthyBookCard(String title, String author, String coverUrl, String status, String urgency, String category,
                                         Color sage, Color warmBrown, Color darkBrown, Color sand, Color moss, Color terracotta) {
         JPanel card = new JPanel();
@@ -1286,6 +1410,7 @@ public class LoginWindow extends JFrame {
 
         card.add(infoPanel, BorderLayout.SOUTH);
 
+        // Hover effect and clickable behavior
         card.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) {
                 card.setBorder(BorderFactory.createCompoundBorder(
@@ -1346,13 +1471,26 @@ public class LoginWindow extends JFrame {
 
         return card;
     }
+
+    /**
+     * Refreshes the grid UI for "All books".
+     *
+     * Behavior:
+     * - Clears out existing book cards
+     * - Fallback message displayed if no books exist
+     * - book cards are re-rendered using current data
+     * - UI forced to update (inlcude revalidate and repaint)
+     */
     private void refreshAllBooksGrid() {
+
+        // Removes all existing components from grid
         allBooksGrid.removeAll();
 
-
+        // Empty state handled
         if (allBooks.isEmpty()) {
             allBooksGrid.add(new JLabel("No books available"));
         } else {
+            // Books re-rendered using current dataset
             renderBooks(
                     allBooksGrid,
                     new Color(156,165,118),
@@ -1364,12 +1502,15 @@ public class LoginWindow extends JFrame {
             );
         }
 
+        // Layout refreshed and UI repainted
         allBooksGrid.revalidate();
         allBooksGrid.repaint();
 
+        // parent container also refreshed (this is important for layout updates)
         allBooksGrid.getParent().revalidate();
         allBooksGrid.getParent().repaint();
     }
+
 
     private void loadAllBooksFromAPI() {
         // Show loading indicator
@@ -1472,14 +1613,24 @@ public class LoginWindow extends JFrame {
         worker.execute();
     }
 
+    /**
+     * Refreshes the book grid for "Currently Borrowed" books grid.
+     *
+     * Behavior:
+     * - Clears borrowed book cards that exist
+     * - recreates cards from the updated borrowedBooks list
+     * - UI is updated to reflect changes
+     */
     private void refreshBorrowedBooks() {
+        // Current borrowed book display gets cleared
         borrowedGridPanel.removeAll();
 
+        // All borrowed books gets re-added as cards
         for (String[] book : borrowedBooks) {
             borrowedGridPanel.add(createEarthyBookCard(
-                    book[0],
-                    book[1],
-                    book[2],
+                    book[0], // title
+                    book[1], // author
+                    book[2], // cover
                     "Due in 7 days",
                     "normal","",
                     new Color(156,165,118),
@@ -1491,43 +1642,88 @@ public class LoginWindow extends JFrame {
             ));
         }
 
+        // UI is refreshed
         borrowedGridPanel.revalidate();
         borrowedGridPanel.repaint();
     }
+
+    /**
+     * Creates a subset (pages) of books into the provided grid panel.
+     *
+     * Behavior:
+     * - Current page range is calculated
+     * - Iterates through the subset of books
+     * - UI Cards are created and added for each book
+     * - UI is refreshed after rendering
+     *
+     * @param allBooksGrid Panel where book cards will be displayed
+     * @param sage Theme color
+     * @param warmBrown Theme color
+     * @param darkBrown Theme color
+     * @param sand Theme color
+     * @param moss Theme color
+     * @param terracotta Theme color
+     */
     private void renderBooks(JPanel allBooksGrid,
                              Color sage, Color warmBrown, Color darkBrown,
                              Color sand, Color moss, Color terracotta) {
 
+        // Range is determined of books for current page
         int start = currentPage * BOOKS_PER_PAGE;
         int end = Math.min(start + BOOKS_PER_PAGE, allBooks.size());
 
+        // Loops through books only in current page
         for (int i = start; i < end; i++) {
             String[] b = allBooks.get(i);
 
+            // Book card is created and added to grid
             allBooksGrid.add(createEarthyBookCard(
-                    b[0],
-                    b[1],
-                    b[2],
-                    b[3],
-                    "", b.length > 4 ? b[4] : "",
+                    b[0], // title
+                    b[1], // author
+                    b[2], // cover
+                    b[3], // status
+                    "", b.length > 4 ? b[4] : "", // category
                     sage, warmBrown, darkBrown, sand, moss, terracotta
             ));
         }
 
+        // Ui is refreshed after adding components
         allBooksGrid.revalidate();
         allBooksGrid.repaint();
     }
 
+    /**
+     * Returns current date which is formatted as readable string.
+     *
+     * Format example:
+     * "Sunday, April 13, 2026"
+     *
+     * @return String formatted as current date
+     */
     private String getCurrentDate() {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("EEEE, MMMM d, yyyy");
         return sdf.format(new java.util.Date());
     }
+
+    /**
+     * Creates grid of featured books
+     *
+     * Behavior:
+     * - Grid layout is initalized
+     * - Book cards that predefined are added (examples that are hardcoded)
+     *
+     * @return JPanel that returns populated panel
+     */
     private JPanel createBooksGrid(){
 
+        // Grid layout created 1 row, 5 columns
         JPanel grid = new JPanel(new GridLayout(1,5,20,20));
+
+        // Spacing and background styling added
         grid.setBorder(BorderFactory.createEmptyBorder(10,0,20,0));
         grid.setBackground(new Color(156, 165, 118));
 
+        // Sample book cards added
         grid.add(createBookCard(
                 "The Silent Patient",
                 "Alex Michaelides",
@@ -2148,33 +2344,64 @@ public class LoginWindow extends JFrame {
         worker.execute();
     }
 
+    /**
+     * Initializes menu bar for the application
+     *
+     * Includes:
+     * - File meny with option to exit app
+     */
     private void setupMenuBar() {
+
+        //Menu bar created
         JMenuBar menuBar = new JMenuBar();
 
+        // File menu created
         JMenu fileMenu = new JMenu("File");
+
+        // Option to exit to close the application
         JMenuItem exitItem = new JMenuItem("Exit");
         exitItem.addActionListener(e -> System.exit(0));
         fileMenu.add(exitItem);
 
         menuBar.add(fileMenu);
 
-
+        // Menu bar is attached to frame
         setJMenuBar(menuBar);
     }
 
+    /**
+     * Event listeners attached to UI Components
+     *
+     * Includes:
+     * - Login button click
+     * - Pressing enter in input fields to trigger the login
+     */
     private void setupActionListeners() {
+
+        // Button click for Login
         loginButton.addActionListener(e -> performLogin());
 //        logoutButton.addActionListener(e -> performLogout());
 
+        // Pressing Enter in username and password fields will trigger login
         usernameField.addActionListener(e -> performLogin());
         passwordField.addActionListener(e -> performLogin());
     }
 
+    /**
+     * Handles validation of user and role base navigation.
+     *
+     * Behavior:
+     * - Validates credentials
+     * - Sets the user session state
+     */
     public void performLogin() {
+
+        // Gets input from user
         String username = usernameField.getText();
         String password = new String(passwordField.getPassword());
 
         //check credentials and determine role
+        // Login for admin
         if (username.equals("admin") && password.equals("password")) {
             currentUser = username;
             currentUserRole = "ADMIN";
@@ -2183,9 +2410,10 @@ public class LoginWindow extends JFrame {
             statusLabel.setText("Status: Logged in as Administrator");
             statusLabel.setForeground(Color.GREEN);
 
-            //switch to admin
+            //switch to admin dashboard
             cardLayout.show(mainPanel, "ADMIN_DASHBOARD");
 
+            // Load books asynchronously (this prevents the UI to freeze)
             SwingUtilities.invokeLater(() -> {
                 loadAllBooksFromAPI();
             });
@@ -2195,6 +2423,7 @@ public class LoginWindow extends JFrame {
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE);
 
+          // User/Customer login
         } else if (username.equals("user") && password.equals("password")) {
             currentUser = username;
             currentUserRole = "USER";
@@ -2203,26 +2432,36 @@ public class LoginWindow extends JFrame {
             statusLabel.setText("Status: Logged in as User");
             statusLabel.setForeground(Color.GREEN);
 
+            //Dashboard update with greeting
             updateUserDashboard();
 
-            //switch to user
+            //switch to user dashboard
             cardLayout.show(mainPanel, "USER_DASHBOARD");
 
             JOptionPane.showMessageDialog(this,
                     "User login successful!",
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE);
+          // Login is invalid
         } else {
             JOptionPane.showMessageDialog(this,
                     "Invalid username or password!",
                     "Login Failed",
                     JOptionPane.ERROR_MESSAGE);
+            // Password is cleared for security
             passwordField.setText("");
         }
     }
 
+    /**
+     * Updates user dashboard to display user's name.
+     *
+     * Moves through nested panels to locate the welcome label and update its texts.
+     */
     private void updateUserDashboard() {
         Component[] components = userDashboard.getComponents();
+
+        // Moves through nested components to find welcome label
         for (Component comp : components) {
             if (comp instanceof JPanel) {
                 JPanel panel = (JPanel) comp;
@@ -2234,6 +2473,8 @@ public class LoginWindow extends JFrame {
                         for (Component subSubComp : subSubComponents) {
                             if (subSubComp instanceof JLabel) {
                                 JLabel label = (JLabel) subSubComp;
+
+                                // Only welcome label is updated
                                 if (label.getText().equals("Welcome to the Library System")) {
                                     label.setText("Welcome, " + currentUser + "! (User)");
                                 }
@@ -2245,22 +2486,36 @@ public class LoginWindow extends JFrame {
         }
     }
 
+    /**
+     * Logs out user and resets application state to login state
+     *
+     * Behavior:
+     * - Clears dashboard data (admin or user)
+     * - UI fields reset
+     * - Navigates right back to login screen
+     */
     public void performLogout() {
+
+        // State is resetted
         isLoggedIn = false;
         currentUser = "";
         currentUserRole = "";
+
+        // Status label is resetted
         statusLabel.setText("");
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setFont(new Font("Garamond", Font.PLAIN, 15));
 
+        // Login components are re-enabled
         loginButton.setEnabled(true);
-
         usernameField.setEnabled(true);
         passwordField.setEnabled(true);
 
+        // Input fields is resetted
         usernameField.setText("");
         passwordField.setText("");
 
+        // Navigate backs to the login screen
         cardLayout.show(mainPanel, "LOGIN");
 
         JOptionPane.showMessageDialog(this,
