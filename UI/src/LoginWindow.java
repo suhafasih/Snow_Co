@@ -670,7 +670,12 @@ public class LoginWindow extends JFrame {
         }
     }
 
-
+    /**
+     *  Initializes and creates User Dashboard view.
+     *  Method coordinates layout for library catalog, which includes
+     *  interactive search bar with autocomplete, filtering by category,
+     *  borrowing book status, and dynamic book grid
+     */
     private void createUserDashboard() {
         userDashboard = new JPanel(new BorderLayout());
 
@@ -685,6 +690,7 @@ public class LoginWindow extends JFrame {
 
         userDashboard.setBackground(cream);
 
+        // Title and global logout control
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(sage);
         header.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
@@ -705,12 +711,13 @@ public class LoginWindow extends JFrame {
 
         userDashboard.add(header, BorderLayout.NORTH);
 
+        // Main scrollable wrapper for dashboard content
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(cream);
         content.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        //horizontal wraper
+        //horizontal wrapper
         JPanel searchContainer = new JPanel(new BorderLayout(10, 0)); // 10px gap between bar and button
         searchContainer.setBackground(cream);
         searchContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -728,7 +735,7 @@ public class LoginWindow extends JFrame {
         searchButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         searchButton.setPreferredSize(new Dimension(120, 45));
 
-        //add to wraper
+        //add to wrapper
         searchContainer.add(searchField, BorderLayout.CENTER);
         searchContainer.add(searchButton, BorderLayout.EAST);
 
@@ -736,6 +743,7 @@ public class LoginWindow extends JFrame {
         JPopupMenu suggestionMenu = new JPopupMenu();
         suggestionMenu.setFocusable(false); //prevents the menu from stealing typing cursor
 
+        // API Call triggered after 500ms of idle typing for resources to be saved
         javax.swing.Timer typingTimer = new javax.swing.Timer(500, e -> {
             String query = searchField.getText().trim();
             if (query.length() >= 3) {
@@ -817,6 +825,7 @@ public class LoginWindow extends JFrame {
         });
 
 
+        // Clickable pills generated to filter library by genre
         JLabel categoriesLabel = new JLabel("Browse Categories");
         categoriesLabel.setFont(new Font("Georgia", Font.BOLD, 22));
         categoriesLabel.setForeground(darkBrown);
@@ -832,6 +841,7 @@ public class LoginWindow extends JFrame {
                 "Fantasy", "Biography", "History", "Non-Fiction"
         };
 
+        // Main display for all book results
         allBooksGrid = createEarthyBooksGrid(sage, warmBrown, darkBrown, sand, moss, terracotta, false);
         allBooksGrid.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -978,7 +988,7 @@ public class LoginWindow extends JFrame {
 
         content.add(allBooksGrid);
 
-        // Load More button
+        // Load More buttons
         JButton loadMoreBtn = new RoundedButton("Load More Books");
         loadMoreBtn.setBackground(sand);
         loadMoreBtn.setForeground(Color.WHITE);
@@ -1042,6 +1052,7 @@ public class LoginWindow extends JFrame {
                             loadMoreBtn.setText("Load More Books");
                             allBooksGrid.removeAll(); // clear UI FIRST
 
+                            // Populate results into data list and render cards
                             for (int i = 0; i < Math.min(results.size(), 20); i++) {
                                 JsonObject book = results.get(i).getAsJsonObject();
 
@@ -1086,6 +1097,7 @@ public class LoginWindow extends JFrame {
                 worker.execute();
             }
         };
+
 
         searchField.addActionListener(performSearch);
         searchButton.addActionListener(performSearch);
@@ -1511,7 +1523,10 @@ public class LoginWindow extends JFrame {
         allBooksGrid.getParent().repaint();
     }
 
-
+    /**
+     * Startup loader initialized for Admin dashboard.
+     * default set of  "popular fiction" fetched to populate management table.
+     */
     private void loadAllBooksFromAPI() {
         // Show loading indicator
         JOptionPane.showMessageDialog(this,
@@ -1537,9 +1552,11 @@ public class LoginWindow extends JFrame {
                     if (results != null && results.size() > 0) {
                         java.util.Random rand = new java.util.Random();
                         String[] formats = {"Paper", "Hardcover", "E-Book", "Audiobook"};
+                        // Limit to 50 results to maintain structure and performance
                         for (int i = 0; i < Math.min(results.size(), 50); i++) {
                             JsonObject book = results.get(i).getAsJsonObject();
 
+                            // Safe extraction of book data if null
                             String title = book.has("title")
                                     ? book.get("title").getAsString()
                                     : "Unknown Title";
@@ -1560,8 +1577,11 @@ public class LoginWindow extends JFrame {
                                     ? String.valueOf(book.get("edition_count").getAsInt())
                                     : "N/A";
 
+                            // Prices randmonly assigned to books from Open Library API
                             String format = formats[rand.nextInt(formats.length)];
                             String price = String.format("%.2f", 12.99 + (rand.nextDouble() * 15));
+
+                            // Match keyword logic to map API subjects to the app categories
                             String category = "Fiction";
                             if (book.has("subject")){
                                 JsonArray subjects = book.getAsJsonArray("subject");
@@ -1578,17 +1598,20 @@ public class LoginWindow extends JFrame {
                                     else if (subject.contains("non-fiction")) category = "Non-Fiction";
                                     if (matchFound) break;
                                 }
+
+                                // Fallback to first avalible subject if no keywords found or matched
                                 if (!matchFound && subjects.size() > 0){
                                     String firstSub = subjects.get(0).getAsString();
                                     category = firstSub.substring(0, 1).toUpperCase() + firstSub.substring(1).toLowerCase();
                                 }
                             }
-                            // Add row to table
+                            // Add processed data to JTable and internal filtering list
                             model.addRow(new Object[]{title, author, year, editionCount, format, price, category});
 
                             allBooksList.add(new Object[]{title, author, year, editionCount, format, price, category});
                         }
 
+                        // Success message will pop up once data is loaded to Admin dashboard
                         JOptionPane.showMessageDialog(null,
                                 "Successfully loaded " + model.getRowCount() + " books!",
                                 "Success",
@@ -1753,18 +1776,32 @@ public class LoginWindow extends JFrame {
 
         return grid;
     }
+
+    /**
+     * Method that creates a stylized visual card for a book.
+     * Component features round asthetic, centers text using GridBagLayoout
+     * and use HTML rendering to handle text wrapping for titles and authors that are long
+     *
+     * @param title Title of book displayed
+     * @param author Name of author
+     * @param coverUrl Web URL for cover image of book
+     * @return JPanel (as RoundedPanel) contains books visual representation
+     */
     private JPanel createBookCard(String title, String author, String coverUrl) {
 
+        // Custom rounded panel initialized with 30px corner radius
         JPanel card = new RoundedPanel(30);
         card.setLayout(new BorderLayout());
         card.setPreferredSize(new Dimension(180, 300));
         card.setBackground(new Color(140, 108, 95));
 
-//Centre panel for cover image
+        //Centre panel for cover image
         JPanel coverPanel = new RoundedPanel(20);
         coverPanel.setBackground(new Color(140, 108, 95));
 
         try {
+
+            // Image fetched directly from URL
             BufferedImage img = ImageIO.read(new URL(coverUrl));
             Image scaled = img.getScaledInstance(160, 200, Image.SCALE_SMOOTH);
 
@@ -1772,30 +1809,36 @@ public class LoginWindow extends JFrame {
             coverPanel.add(cover);
 
         } catch (Exception e) {
+
+            // text placeholder displayed if image fails to load or URL is not valid
             JLabel placeholder = new JLabel("No Cover");
             placeholder.setFont(new Font("Garamond", Font.ITALIC, 14));
             placeholder.setForeground(Color.WHITE);
             coverPanel.add(placeholder);
         }
 
+        // Cover is placed in center of cards BorderLayout
         card.add(coverPanel, BorderLayout.CENTER);
 
-        //Info panel
+        // GridagLayout used inside Info panel to ensure text stays centered perfectly
         JPanel info = new RoundedPanel(20);
         info.setLayout(new GridBagLayout()); // Changed to GridBagLayout for better centering
         info.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         info.setBackground(new Color(140, 108, 95));
 
+        // Panel nested to stack Title and Author vertically
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setBackground(new Color(140, 108, 95));
         textPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // text rendering test
         JLabel t = new JLabel(title);
         t.setFont(new Font("Garamond", Font.BOLD, 16)); // Slightly smaller to fit
         t.setForeground(Color.WHITE);
         t.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // If title is too long, use HTML to force multi-line wrapping
         if (title.length() > 20) {
             t.setText("<html><div style='text-align: center; width: 150px;'>" + title + "</div></html>");
         }
@@ -1805,14 +1848,17 @@ public class LoginWindow extends JFrame {
         a.setForeground(Color.WHITE);
         a.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Same HTML wrapping logic applied for author name
         if (author.length() > 25) {
             a.setText("<html><div style='text-align: center; width: 150px;'>" + author + "</div></html>");
         }
 
+        // Text stack created
         textPanel.add(t);
         textPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         textPanel.add(a);
 
+        // GridBagConstraints used to finalize cnetering with SOUTH region
         info.add(textPanel, new GridBagConstraints());
 
         card.add(info, BorderLayout.SOUTH);
@@ -1822,7 +1868,19 @@ public class LoginWindow extends JFrame {
 
 
     //Admin panel Components
+
+    /**
+     *  Library Management Panel for the administrators.
+     *  Methods handles:
+     *  JTable initialization and custom styling,
+     *  local filtering and API search logic that is remote using SwingWorker,
+     *  Add, Edit, Delete books operation with dialog forms
+     *  Event handling and context sensitive right-click menus.
+     * @return JPanel includes fuller interactive management interface.
+     */
     private JPanel createBooksManagementPanel() {
+
+        // Table and model initialized
         String[] columns = {"Title", "Author", "First Publish Year", "Edition Count", "Format", "Price", "Category"};
         DefaultTableModel model = new DefaultTableModel(columns, 0);
         this.booksTable = new JTable(model);
@@ -1910,6 +1968,7 @@ public class LoginWindow extends JFrame {
                     @Override
                     protected void done() {
                         try {
+                            // Assigns random format to book in database
                             JsonArray results = get();
                             java.util.Random rand = new java.util.Random();
                             String[] formats = {"Paperback", "Hardcover", "E-Book", "Audiobook"};
@@ -2051,6 +2110,7 @@ public class LoginWindow extends JFrame {
                     "Category:", categoryCombo
             };
 
+            // New book add message if admin wants to add new book
             int result = JOptionPane.showConfirmDialog(null, formElements,
                     "Add New Book", JOptionPane.OK_CANCEL_OPTION);
 
@@ -2229,6 +2289,7 @@ public class LoginWindow extends JFrame {
         contextMenu.addSeparator();
         contextMenu.add(copyTitleItem);
 
+        // Hover smooth effect
         booksTable.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 if (e.isPopupTrigger()) {
@@ -2250,6 +2311,7 @@ public class LoginWindow extends JFrame {
             }
         });
 
+        // Creation of book management panel
         JScrollPane scrollPane = new JScrollPane(booksTable);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setOpaque(false);
@@ -2268,13 +2330,22 @@ public class LoginWindow extends JFrame {
         return panel;
     }
 
+    /**
+     * Fetches data asynchrounously from API and maps it to list of Object arrays.
+     * Callback pattern is used to return data once background task is completed.
+     *
+     * @param callback Consumer that handles the populated list of book objects
+     */
     private void loadAllBooksFromAPIWithCallback(java.util.function.Consumer<java.util.List<Object[]>> callback) {
         SwingWorker<JsonArray, Void> worker = new SwingWorker<>() {
+
+            // Raw data fetched from Open Library
             @Override
             protected JsonArray doInBackground() {
                 return API.searchBooks("popular fiction");
             }
 
+            // JSON results are processed into table-ready rows
             @Override
             protected void done() {
                 try {
@@ -2291,18 +2362,21 @@ public class LoginWindow extends JFrame {
 
                             String title = book.has("title") ? book.get("title").getAsString() : "Unknown Title";
 
+                            // Basic info is grabbed or default is used
                             String author = "Unknown Author";
                             if (book.has("author_name")) {
                                 JsonArray authors = book.get("author_name").getAsJsonArray();
                                 if (authors.size() > 0) author = authors.get(0).getAsString();
                             }
 
+                            // JSON values converted to Strings
                             String year = book.has("first_publish_year") ?
                                     String.valueOf(book.get("first_publish_year").getAsInt()) : "N/A";
 
                             String editionCount = book.has("edition_count") ?
                                     String.valueOf(book.get("edition_count").getAsInt()) : "N/A";
 
+                            // Prices that are randomized and formatted for demo
                             String format = formats[rand.nextInt(formats.length)];
                             String price = String.format("%.2f", 9.99 + (rand.nextDouble() * 20.0));
 
@@ -2314,6 +2388,8 @@ public class LoginWindow extends JFrame {
                                 System.out.println("Book: " + title + "| Subjects: " + subjects.toString());
                                 for (int s = 0; s < Math.min(subjects.size(), 5); s++) {
                                     String subject = subjects.get(s).getAsString().toLowerCase();
+
+                                   // API tags sent from to UI Categories
                                     if (subject.contains("fiction")) category = "Fiction";
                                     else if (subject.contains("mystery")) category = "Mystery";
                                     else if (subject.contains("sci-fi") || subject.contains("science fiction")) category = "Sci-Fi";
@@ -2324,6 +2400,8 @@ public class LoginWindow extends JFrame {
                                     else if (subject.contains("non-fiction")) category = "Non-Fiction";
                                     if (matchFound) break;
                                 }
+
+                                // Use first API Tag if no keywords found or matched
                                 if (!matchFound && subjects.size() > 0){
                                     String firstSub = subjects.get(0).getAsString();
                                     category = firstSub.substring(0, 1).toUpperCase() + firstSub.substring(1).toLowerCase();
@@ -2331,12 +2409,17 @@ public class LoginWindow extends JFrame {
 
                             }
 
+                            // 7 column row added and fully processed to list
                             booksList.add(new Object[]{title, author, year, editionCount, format, price, category});
                         }
                     }
+
+                    // Finished list returned to UI
                     callback.accept(booksList);
                 } catch (Exception e) {
                     e.printStackTrace();
+
+                    // Empty list returned on failure
                     callback.accept(new java.util.ArrayList<>());
                 }
             }
@@ -2524,6 +2607,13 @@ public class LoginWindow extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
+    /**
+     * Main entry point for the Library Catalog application to run.
+     * method handles initial application startup which includes:
+     * Setting UI look and feel to match host operating system.
+     * Ensures GUI is launched on Event Dispatch Thread for thread safety.
+     * @param args Arugment for command-lines (not used in this application)
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
