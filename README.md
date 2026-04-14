@@ -98,6 +98,46 @@ To learn more about a book, simply click on its card in the grid. This will open
 2. Click the terracotta-colored **Return Book** button on the book's card.
 3. The book will be removed from your account and returned to the "All Books" grid for others to enjoy.
 
+### Admin Dashboard Guide
+
+The Admin Dashboard serves as your main point of control over the library system. It enables various 
+options such as, update, delete, and organize books.
+
+### Managing books
+# Add Book
+This feature allows admin to add new books to the library.
+1. Click on the add book option.
+2. This will open a form where you can fill in all the book details such as Book title, Author, Publish Year, Edition Count, Format, Price and Category.
+3. Click Ok to proceed.
+4. The new added book will be added to the library database.
+
+# Edit Book
+This button allows admin to edit book details
+1. Locate the book that you wish to edit by using the search function
+2. Select the book from the table and click on the **Edit book** button.
+3. The book details will pop up ready to be edited and updated.
+
+# Delete Book
+This function helps the admin delete any books.
+1. Locate and select the book that you wish to delete
+2. Click on the **Delete Book** button.
+3. Confirm the book deletion by selecting yes/no.
+4. This book will successfully be removed from the library database
+
+### Searching books
+Use the search bar to quickly locate books by Title/author/Key Word. Click on the **Search** button to get results. The table will show all books with same/similar title.
+
+### Viewing book data
+The main table displays a few books from the library database. This table consists of:
+1. Book title - name of the book
+2. Author - writer of the book
+3. First publication year - original book release year
+4. Edition count - Number of editions of the book
+5. Format - Hardcover/E-Book/Audio Book/Paper Back
+6. Price - Cost of the book in $
+7. Category - Genre of the book: Fiction/ Non-Fiction/ Mystery/ Sci-fi/ Romance/ Fantasy/ Biography/ History
+
+
 
 
 ## Features
