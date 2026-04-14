@@ -538,7 +538,7 @@ public class LoginWindow extends JFrame {
 
         // Admin action cards added
         grid.add(createAdminCard("Manage Books",sage,darkBrown,sand));
-        grid.add(createAdminCard("Manage Reviews",sage,darkBrown,sand));
+//        grid.add(createAdminCard("Manage Reviews",sage,darkBrown,sand));
 
         return grid;
     }
